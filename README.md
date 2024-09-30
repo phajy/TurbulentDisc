@@ -10,5 +10,6 @@ Calculations of reflection spectra from relativistic, turbulent discs
 
 ## Relevant software
 - [Gradus.jl](https://github.com/astro-group-bristol/Gradus.jl) the general relativistic ray tracing software we'll be using.
+    - Include a link to the [documentation](https://astro-group-bristol.github.io/Gradus.jl/dev/).
 - This requires [Julia](https://julialang.org/) to be installed.
 - You might want to use a development environment like [VSCode](https://code.visualstudio.com/) with the [Julia extension](https://marketplace.visualstudio.com/items?itemName=julialang.language-julia).
