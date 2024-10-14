@@ -41,7 +41,7 @@ keplerian_velocities = Gradus.CircularOrbits.fourvelocity.(m, radii)
 function turbulent_structure(m, r, correlation_length)
     keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
     # add a random number between 0 and the sound speed, rescaled a little bit
-    vt = SVector((2e-1 * randn() * soundspeed(r) for _ = 1:4)...)
+    vt = SVector((6e-1 * randn() * soundspeed(r) for _ = 1:4)...)
 
     v = keplerian .+ vt
 
