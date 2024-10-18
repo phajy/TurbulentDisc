@@ -46,7 +46,8 @@ d = ThinDisc(Gradus.isco(m), 50.0)
 
 # compose our turbulent redshift function with a filter function to remove those
 # points outside of the ISCO
-pf = turbulent_redshift(m, x, velocity_wrapper) ∘ ConstPointFunctions.filter_intersected()
+redshift_pf = turbulent_redshift(m, x, velocity_wrapper)
+pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
 
 α, β, img = rendergeodesics(
     m,
@@ -63,3 +64,13 @@ pf = turbulent_redshift(m, x, velocity_wrapper) ∘ ConstPointFunctions.filter_i
 )
 
 heatmap(α, β, img, aspect_ratio = 1)
+
+# to create a lineprofile, probably best to use the binning method until some
+# correlation length exists, else the lineprofiles will amplify noise to due
+# discontinuous redshift functions
+bins = collect(range(0.0, 2.0, 200))
+_, f = lineprofile(m, x, d, redshift_pf = pf, verbose = true, method = BinningMethod(), bins = bins)
+
+# set whatever is in the last bin to 0 as it's most likely a noise contribution
+f[end] = 0
+plot(bins, f)
