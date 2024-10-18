@@ -35,13 +35,19 @@ end
 function turbulent_structure(m, r, correlation_length)
     keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
     # add a random number between 0 and the sound speed, rescaled a little bit
-    vt = SVector((6e-1 * randn() * soundspeed(r) for _ = 1:4)...)
+    vt = SVector((1e-1 * randn() * soundspeed(r) for i in 1:4)...)
 
     v = keplerian .+ vt
 
     # now we need to ensure that the velocity has magnitude -1. This will
     # depend on the position `x`
-    x = SVector(0.0, r, 0.0, 0.0)
-    Gradus.constrain_all(m, x, v, 1.0)
+    # x = SVector(0.0, r, π/2, 0.0)
+    # Gradus.constrain_all(m, x, v, 0.0)
+
+    # NOTE: I have temporarily removed the normalisation, because for this
+    # ad-hoc turbulent noise, it fails to constrain the velocity vector **and**
+    # make the ray-traced image look good. I prioritise aesthetics over accuracy
+    # here.
+    v
 end
 
