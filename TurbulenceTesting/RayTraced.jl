@@ -1,5 +1,5 @@
 include("VelocityStructures.jl")
-include("velocity-structures.jl")
+# include("velocity-structures.jl")
 
 # to include our turbulent velocity map, we need to specify a new
 # point function that calculates the redshift with our custom velocity
@@ -68,15 +68,38 @@ pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
 
 heatmap(α, β, img, aspect_ratio = 1)
 
-#=
+findmax(i -> isnan(i) ? 0 : i, img)
+
+alpha = α[413]
+beta = β[193]
+
+scatter!([alpha], [beta])
+
+v0 = map_impact_parameters(m, x, alpha, beta)
+
+sol = tracegeodesics(m, x, v0, d, 2x[2])
+
+plot_paths(sol)
+
+gp = Gradus.unpack_solution(sol)
+
+gp.x[[2, 4]]
+
+begin
+    include("VelocityStructures.jl")
+    redshift_pf = turbulent_redshift(m, x, velocity_wrapper)
+    redshift_pf(m, gp, 0.0)
+end
+
+nothing
 
 # to create a lineprofile, probably best to use the binning method until some
 # correlation length exists, else the lineprofiles will amplify noise to due
 # discontinuous redshift functions
 bins = collect(range(0.0, 2.0, 200))
-_, f = lineprofile(m, x, d, redshift_pf = pf, verbose = true, method = BinningMethod(), bins = bins)
+plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = 5 * d.outer_radius)
+_, f = lineprofile(m, x, d, redshift_pf = pf, verbose = true, method = BinningMethod(), bins = bins, plane = plane)
 
 # set whatever is in the last bin to 0 as it's most likely a noise contribution
 f[end] = 0
 plot(bins, f)
-=#
