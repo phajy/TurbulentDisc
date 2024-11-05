@@ -52,12 +52,6 @@ pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
 
 heatmap(α, β, img, aspect_ratio = 1)
 
-begin
-    include("velocity-structures-klb.jl")
-    redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length)
-    redshift_pf(m, gp, 0.0)
-end
-
 # Create and plot line profile 
 bins = collect(range(0.0, 2.0, 200))
 plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = 5 * d.outer_radius)
