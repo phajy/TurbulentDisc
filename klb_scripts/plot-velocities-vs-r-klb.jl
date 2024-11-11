@@ -10,7 +10,7 @@ include("pariev-bromley-equations-klb.jl")
 # Define constants
 epsilon = 0.1  # Disc efficiency parameter (example value)
 luminosity = 1e46  # Disc luminosity in erg/s (example value)
-# M_black_hole = 1e8 # Typical mass of black hole (10^8 solar masses)
+M_black_hole = 1e8 # Typical mass of black hole (10^8 solar masses)
 edd_luminosity_val = eddington_luminosity(M_black_hole) # Eddington luminosity for a 10^8 solar mass black hole
 # r_ms = 1.237*M_black_hole # ISCO radius
 
