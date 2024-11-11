@@ -48,7 +48,7 @@ function turbulence_random(m, r, correlation_length)
     # ad-hoc turbulent noise, it fails to constrain the velocity vector **and**
     # make the ray-traced image look good. I prioritise aesthetics over accuracy
     # here.
-    v
+    Gradus.constrain_all(m, x, v, 1.0)
 end
 
 
@@ -56,19 +56,22 @@ perlin_noise = perlin_2d(seed=1)
 
 function turbulence_perlin(m, r, theta)
 
-    intensity=1
+    intensity=0.2
 
     keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
 
     # Convert polar to Cartesian coordinates
     x = r * cos(theta)
     y = r * sin(theta)
+
     
     # Generate Perlin noise based on the Cartesian coordinates
     noise_val = intensity*sample(perlin_noise, x, y)
 
+    # @show noise_val
 
     vt = SVector(0, noise_val, 0, 0)
     v = keplerian + vt
-            
+    x_disc = SVector(0.0, r, π/2, 0.0)
+    Gradus.constrain_all(m, x_disc, v, 1.0)
 end
