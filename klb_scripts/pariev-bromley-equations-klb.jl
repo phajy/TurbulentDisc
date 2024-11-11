@@ -61,6 +61,9 @@ end
 
 # Equation 15: Speed of sound to speed of light ratio (v_turb)
 function sound_speed_ratio(r, a, epsilon, L, L_edd, r_ms)
+    if r < r_ms
+        return 0
+    end
     factor = 1.18 * epsilon^(-1) * (L / L_edd) * r^(-3/2)
     A_val = A(r, a)
     B_val = B(r, a)
