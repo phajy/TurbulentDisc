@@ -27,7 +27,7 @@ end
 function calculate_turbulent_line_profile(m, x, d, bins, correlation_length)
     redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length)
     pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
-    plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = 5 * d.outer_radius)
+    plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius)
     _, f = lineprofile(m, x, d, redshift_pf = pf, method = BinningMethod(), bins = bins, plane = plane)
     f[end] = 0
     return f
@@ -80,13 +80,14 @@ for q in q_values
             label = "Zero turbulence: i = $inc_angle, q = $q",
             xlabel = "Redshift",
             ylabel = "Flux (arbitrary units)",
+            title = "Thin Disc Line Profile (Zero Turbulence vs Turbulent)",
             legend = :topleft,
             lw = 1
         )
         plot!(
             bins, flux_turbulent,
             linestyle = :dash,
-            label = "Turbulent: i = $inc_angle, q = $q",
+            label = "Turbulent (Perlin): i = $inc_angle, q = $q",
             lw = 1
         )
 

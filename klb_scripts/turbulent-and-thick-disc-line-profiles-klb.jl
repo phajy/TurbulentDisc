@@ -95,7 +95,7 @@ end
 p = plot(
     xlabel = "Redshift",
     ylabel = "Flux (arbitrary units)",
-    title = "Thick Disc Line Profiles (Zero Turbulence vs Turbulent)",
+    title = "Finite-Thickness Disc Line Profile (Zero Turbulence vs Turbulent)",
     legend = :topleft
 )
 
@@ -114,13 +114,13 @@ for q in q_values
             label = "Zero turb: i=$i, q=$q",
             lw = 1, color = :blue,
             xlabel = "Redshift", ylabel = "Flux",
-            title = "Line Profiles for i=$i, q=$q"
+        
         )
         
         # Add turbulent profile to the same plot
         plot!(
             bins, flux_turbulent,
-            label = "Turbulent: i=$i, q=$q",
+            label = "Turbulent (Perlin): i=$i, q=$q",
             lw = 1, linestyle = :dash, color = :red
         )
         
