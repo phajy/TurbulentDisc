@@ -8,12 +8,14 @@ inc_angles = [30, 60, 75]
 q_values = [2, 3, 4]
 
 # Create the thin disc with inner (ISCO) and outer radius (arbritrary)
-inner_radius = 0.0
-outer_radius = 400.0
-d = ThinDisc(inner_radius, outer_radius)
 
 # Kerr metric setup
 m = KerrMetric(1.0, 0.998)
+
+inner_radius = Gradus.isco(m)
+outer_radius = 400.0
+d = ThinDisc(inner_radius, outer_radius)
+
 
 # Define a custom bin range for redshift (g grid for line profile)
 bins = collect(range(0.1, 1.5, 200))
