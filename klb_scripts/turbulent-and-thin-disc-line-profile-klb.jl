@@ -52,10 +52,10 @@ end
 
 # --- Combined Plotting ---
 # Parameters for both models
-inner_radius = 0.0
+m = KerrMetric(1.0, 0.998)
+inner_radius = Gradus.isco(m)
 outer_radius = 400.0
 d = ThinDisc(inner_radius, outer_radius)
-m = KerrMetric(1.0, 0.998)
 bins = collect(range(0.1, 1.5, 200))
 correlation_length = 1.0  # Initial correlation length for turbulence
 

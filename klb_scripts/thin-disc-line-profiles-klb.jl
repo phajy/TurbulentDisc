@@ -7,7 +7,7 @@ using Plots, Gradus
 inc_angles = [30, 60, 75]
 q_values = [2, 3, 4]
 
-# Create the thin disc with inner and outer radius
+# Create the thin disc with inner (ISCO) and outer radius (arbritrary)
 inner_radius = 0.0
 outer_radius = 400.0
 d = ThinDisc(inner_radius, outer_radius)
