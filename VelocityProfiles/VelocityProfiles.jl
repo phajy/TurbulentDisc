@@ -1,3 +1,4 @@
+using Gradus
 using Plots
 
 function A(r, a, M)
@@ -81,12 +82,6 @@ function L(r, a, M)
     
 end
 
-function efficiency(bindingEnergyNorm=0.1)
-
-    return 1 - bindingEnergyNorm
-
-end
-
 function Ledd(M)
 
     M_sol = 1
@@ -95,9 +90,13 @@ function Ledd(M)
 
 end
 
+# Q(r, a, M) as defined in Page & Thorne (1974), their equation 35
+function Q(r, a, M, isco)
+    return L(r, a, M)
+    # note above line is wrong!
+end
 
-
-function SoundSpeed(r, a, M)
+function SoundSpeed(r, a, M, ϵ, isco)
 
     r_star = r/M
     a_star = a/M
@@ -105,11 +104,11 @@ function SoundSpeed(r, a, M)
     L_Ledd = 1
     LComp = 1
 
-    return 1.18 * (efficiency()^(-1)) * r_star^(-3/2) * A(r, a, M) * B(r, a, M)^(-2) * D(r, a, M)^(-1/2) * E(r, a, M)^(-1/2) * LComp
+    return 1.18 * (ϵ^(-1)) * r_star^(-3/2) * A(r, a, M) * B(r, a, M)^(-2) * D(r, a, M)^(-1/2) * E(r, a, M)^(-1/2) * Q(r, a, M, isco)
 
 end
 
-function RadialSpeed(r, a, alpha, M)
+function RadialSpeed(r, a, alpha, M, ϵ, isco)
 
     r_star = r/M
     a_star = a/M
@@ -117,18 +116,24 @@ function RadialSpeed(r, a, alpha, M)
     L_Ledd = 1
     LComp = 1
 
-    return 1.18 * alpha * (efficiency()^(-2)) * r_star^(-5/2) * A(r, a, M)^2 * B(r, a, M)^(-3) * C(r, a, M)^(-1/2) * D(r, a, M)^(-1/2) * E(r, a, M)^(-1) * LComp
+    return 1.18 * alpha * (ϵ^(-2)) * r_star^(-5/2) * A(r, a, M)^2 * B(r, a, M)^(-3) * C(r, a, M)^(-1/2) * D(r, a, M)^(-1/2) * E(r, a, M)^(-1) * Q(r, a, M, isco)
 
 end
 
-a = 0.998
-M = 1
+a = 0.9
+M = 1.0
 alpha = 0.3
 
-rPos = collect(range(20, 100, 100))
+# calculate the ISCO and efficiency for the given spin parameter
+# note that ISCO and r_ms are used interchangeably in the literature
+m = KerrMetric(M = M, a = a)
+isco = Gradus.isco(m)
+ϵ = 1.0 - Gradus.CircularOrbits.energy(m, isco)
 
-cs = [SoundSpeed(r, a, M) for r in rPos]
-vr = [RadialSpeed(r, a, alpha, M) for r in rPos]
+rPos = collect(range(isco, 100, 100))
 
-#plot(rPos, cs)
-plot(rPos, vr)
+cs = [SoundSpeed(r, a, M, ϵ, isco) for r in rPos]
+vr = [RadialSpeed(r, a, alpha, M, ϵ, isco) for r in rPos]
+
+plot(rPos, cs)
+# plot(rPos, vr)
