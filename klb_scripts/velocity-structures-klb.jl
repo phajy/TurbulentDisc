@@ -29,17 +29,16 @@ end
 # trivial, random example:
 function turb_rand(m, r, correlation_length)
     keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
-    # selects random number and scaled by sound speed as a function of r
+    # add a random number between 0 and the sound speed, rescaled a little bit
     vt = SVector((1e-1 * randn() * soundspeed(r) for i in 1:4)...)
 
-    # add random perturbations to Keplerian velocities
     v = keplerian .+ vt
 
     # now we need to ensure that the velocity has magnitude -1. This will
     # depend on the position `x`
-    x = SVector(0.0, r, π/2, 0.0)
-
-    Gradus.constrain_all(m, x, v, 1.0)
+    # x = SVector(0.0, r, π/2, 0.0)
+    # Gradus.constrain_all(m, x, v, 0.0)
+    v
 end
 
 # Perlin noise
@@ -99,4 +98,17 @@ function turb_fbm(m, r, theta, correlation_length)
     Gradus.constrain_all(m, x, v, 1.0)
 
     return v
+end
+
+
+function turbulent_structure(m, r, θ; type=:fbm, correlation_length=10.0)
+    if type == :rand
+        return turb_rand(m, r, correlation_length)
+    elseif type == :perlin
+        return turb_perlin(m, r, θ, correlation_length)
+    elseif type == :fbm
+        return turb_fbm(m, r, θ, correlation_length)
+    else
+        throw(ArgumentError("Unknown turbulence type: $type"))
+    end
 end
