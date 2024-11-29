@@ -1,4 +1,4 @@
-# Script to plot the zero-turbulence and perlin/fBm noise turbulence line profiles for a finite-thickness disc for different emissivities 
+# Script to plot the zero-turbulence and perlin/fBm noise turbulence line profiles for a arbitrarily thick disc for different emissivities 
 # and inclination angles (emissivities and inclinations angle ranges as of Pariev & Bromley 1998)
 
 # Import relevant libraries
@@ -114,7 +114,7 @@ for q in q_values
             label = "Zero turb: i=$i, q=$q",
             lw = 1, color = :blue,
             xlabel = "Redshift", ylabel = "Flux",
-            title = "Finite-Thickness Disc Line Profile (Zero Turbulence vs Turbulent)",
+            title = "Thick Disc Line Profile (Zero Turbulence vs Turbulent)",
             legend = :topleft
         
         )
