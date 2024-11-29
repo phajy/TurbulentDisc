@@ -87,7 +87,7 @@ for q in q_values
         plot!(
             bins, flux_turbulent,
             linestyle = :dash,
-            label = "Turbulent (fBm): i = $inc_angle, q = $q",
+            label = "Turbulent (fBm): i = $inc_angle, q = $q, L_corr = $correlation_length",
             lw = 1
         )
 

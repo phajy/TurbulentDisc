@@ -122,7 +122,7 @@ for q in q_values
         # Add turbulent profile to the same plot
         plot!(
             bins, flux_turbulent,
-            label = "Turbulent (fBm): i=$i, q=$q",
+            label = "Turbulent (fBm): i=$i, q=$q, L_corr = $correlation_length",
             lw = 1, linestyle = :dash, color = :red
         )
         
