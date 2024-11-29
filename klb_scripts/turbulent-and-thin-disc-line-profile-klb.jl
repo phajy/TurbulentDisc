@@ -80,7 +80,7 @@ for q in q_values
             label = "Zero turbulence: i = $inc_angle, q = $q",
             xlabel = "Redshift",
             ylabel = "Flux (arbitrary units)",
-            title = "Thin Disc Line Profile (Zero Turbulence vs Turbulent)",
+            title = "Thin Disc Line Profile",
             legend = :topleft,
             lw = 1
         )

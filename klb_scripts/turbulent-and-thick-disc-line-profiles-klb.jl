@@ -114,7 +114,7 @@ for q in q_values
             label = "Zero turb: i=$i, q=$q",
             lw = 1, color = :blue,
             xlabel = "Redshift", ylabel = "Flux",
-            title = "Thick Disc Line Profile (Zero Turbulence vs Turbulent)",
+            title = "Thick Disc Line Profile",
             legend = :topleft
         
         )
