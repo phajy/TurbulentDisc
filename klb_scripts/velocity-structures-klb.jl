@@ -27,7 +27,7 @@ function soundspeed(r)
 end
 
 # trivial, random example:
-function turb_rand(m, r, correlation_length)
+function turb_random(m, r, correlation_length)
     keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
     # add a random number between 0 and the sound speed, rescaled a little bit
     vt = SVector((1e-1 * randn() * soundspeed(r) for i in 1:4)...)
@@ -36,8 +36,8 @@ function turb_rand(m, r, correlation_length)
 
     # now we need to ensure that the velocity has magnitude -1. This will
     # depend on the position `x`
-    # x = SVector(0.0, r, π/2, 0.0)
-    # Gradus.constrain_all(m, x, v, 0.0)
+    #x = SVector(0.0, r, π/2, 0.0)
+    #Gradus.constrain_all(m, x, v, 0.0)
     v
 end
 
@@ -50,7 +50,7 @@ function turb_perlin(m, r, theta, correlation_length)
     x = r * cos(theta)
     y = r * sin(theta)
 
-    scale_factor = 0.2 
+    scale_factor = 5 
 
     # generate Perlin noise for x,y sample
     perlin_noise = perlin_2d(seed=1)
@@ -59,7 +59,7 @@ function turb_perlin(m, r, theta, correlation_length)
     noise = scale_factor * sample(perlin_noise, x / correlation_length, y / correlation_length)
 
     vt = SVector(0, noise, 0, 0)
-
+    
     # add noise to Keplerian velocities
     v = keplerian .+ vt
 
@@ -67,7 +67,8 @@ function turb_perlin(m, r, theta, correlation_length)
 
     # ensure magnitude of 1
     Gradus.constrain_all(m, x, v, 1.0)
-
+    
+    v
 end
 
 # fractional Brownian motion (fBm)
@@ -101,9 +102,9 @@ function turb_fbm(m, r, theta, correlation_length)
 end
 
 
-function turbulent_structure(m, r, θ; type=:fbm, correlation_length=10.0)
-    if type == :rand
-        return turb_rand(m, r, correlation_length)
+function turbulent_structure(m, r, θ; type, correlation_length)
+    if type == :random
+        return turb_random(m, r, correlation_length)
     elseif type == :perlin
         return turb_perlin(m, r, θ, correlation_length)
     elseif type == :fbm

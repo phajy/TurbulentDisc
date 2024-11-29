@@ -6,57 +6,68 @@ m = KerrMetric(1.0, 0.998)
 
 # Define radii and azimuthal angles
 radii = logrange(Gradus.isco(m), 1000, 200)
-θ = collect(range(0, 2π, 200))
+θ = collect(range(0, 2π, length=200))
 
 # Keplerian velocities
 keplerian_velocities = Gradus.CircularOrbits.fourvelocity.(m, radii)
 
-# Choose turbulence model by specifying `type` (:rand, :perlin, :rand)
-turbulent_velocities = [turbulent_structure(m, r, θ[1]; type=:rand, correlation_length=1) for r in radii]
+# Select turbulence type (choose one: :random, :perlin, :fbm)
+selected_type = :random
+
+# Function to generate turbulent field data for plotting
+function generate_field(m, radii, θ, type, correlation_length)
+    return [
+        log10(turbulent_structure(m, r, θ_val; type=type, correlation_length=correlation_length)[4])
+        for r in radii, θ_val in θ
+    ]
+end
+
+# Function to generate a single comparison map
+function generate_comparison_map(m, radii, θ, keplerian_velocities, type, correlation_length)
+    return [
+        (turbulent_structure(m, r, θ_val; type=type, correlation_length=correlation_length)[4] - v[4]) / v[4]
+        for (v, r) in zip(keplerian_velocities, radii), θ_val in θ
+    ]
+end
 
 # --------------------------------------------------------------------- #
 
-# Plot 1: Keplerian vs Turbulent Velocities
-begin
-    plot(
-        radii,
-        [i[4] for i in keplerian_velocities],
-        xlabel = "r",
-        ylabel = "vᵩ",
-        xscale = :log10,
-        yscale = :log10,
-        label = "keplerian",
-    )
-    plot!(radii, [i[4] for i in turbulent_velocities], label = "turbulent")
-end
+# Generate Keplerian Field
+keplerian_field = [
+    log10(i[4]) for (i, r) in zip(keplerian_velocities, radii), θ_val in θ
+]
 
-# Plot 2: Keplerian field in polar projection
-begin
-    keplerian_field = [
-        log10(i[4]) for (i, r) in zip(keplerian_velocities, radii), angle in θ
-    ]
-    heatmap(θ, radii, keplerian_field, projection=:polar, title="keplerian")
-end
+# Generate Turbulent Field for the Selected Type
+turbulent_field = generate_field(m, radii, θ, selected_type, 1)
 
-# Plot 3: Turbulent field in polar projection
-begin
-    turbulent_field = [
-        log10(turbulent_structure(m, r, angle; type=:rand, correlation_length=10.0)[4]) for r in radii, angle in θ
-    ]
-    heatmap(θ, radii, turbulent_field, projection=:polar, title="turbulent (rand)")
-end
+# Generate Comparison Map
+comparison_map = generate_comparison_map(m, radii, θ, keplerian_velocities, selected_type, 1)
 
-# Plot 4: Comparison map
-begin
-    comparison_map = [
-        (turbulent_structure(m, r, angle; type=:rand, correlation_length=10.0)[4] - v[4]) / v[4]
-        for (v, r) in zip(keplerian_velocities, radii), angle in θ
-    ]
-    heatmap(
-        θ,
-        radii,
-        comparison_map,
-        projection=:polar,
-        title="(Turbulent - Keplerian) / Keplerian"
-    )
-end
+# --------------------------------------------------------------------- #
+
+# Plot Keplerian Field
+heatmap(
+    θ,
+    radii,
+    keplerian_field,
+    projection=:polar,
+    title="Keplerian Field",
+)
+
+# Plot Turbulent Field
+heatmap(
+    θ,
+    radii,
+    turbulent_field,
+    projection=:polar,
+    title="Turbulent Field ($selected_type)",
+)
+
+# Plot Comparison Map
+heatmap(
+    θ,
+    radii,
+    comparison_map,
+    projection=:polar,
+    title="Comparison: (Turbulent - Keplerian) / Keplerian ($selected_type)",
+)
