@@ -1,4 +1,4 @@
-# Script to plot the zero-turbulence and perlin noise turbulence line profiles for a finite-thickness disc for different emissivities 
+# Script to plot the zero-turbulence and perlin/fBm noise turbulence line profiles for a finite-thickness disc for different emissivities 
 # and inclination angles (emissivities and inclinations angle ranges as of Pariev & Bromley 1998)
 
 # Import relevant libraries
@@ -122,7 +122,7 @@ for q in q_values
         # Add turbulent profile to the same plot
         plot!(
             bins, flux_turbulent,
-            label = "Turbulent (Perlin): i=$i, q=$q",
+            label = "Turbulent (fBm): i=$i, q=$q",
             lw = 1, linestyle = :dash, color = :red
         )
         
