@@ -24,11 +24,12 @@ function velocity_wrapper(m, r, theta, correlation_length)
     return turb_fbm(m, r, theta, correlation_length)
 end
 
-function calculate_turbulent_line_profile(m, x, d, bins, correlation_length)
+function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q)
     redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length)
     pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
     plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius)
-    _, f = lineprofile(m, x, d, redshift_pf = pf, method = BinningMethod(), bins = bins, plane = plane)
+    ε(r) = r^(-q)
+    _, f = lineprofile(bins, ε, m, x, d, redshift_pf = pf, method = BinningMethod(), plane = plane)
     f[end] = 0
     return f
 end
@@ -60,7 +61,7 @@ outer_radius = 400.0
 d = ShakuraSunyaev(m)
 
 bins = collect(range(0.1, 1.5, 200))
-correlation_length = 0.5  # Initial correlation length for turbulence
+correlation_length = 2  # Correlation length for turbulence
 
 # Define inclination angles and emissivity indices
 inc_angles = [30, 60, 75]
@@ -75,7 +76,7 @@ for q in q_values
         flux_zero = calculate_zero_turbulence_line_profile(m, x, d, bins, q)
 
         # Calculate the turbulent line profile
-        flux_turbulent = calculate_turbulent_line_profile(m, x, d, bins, correlation_length)
+        flux_turbulent = calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q)
 
         # Plot both profiles on the same axes
         plot(
