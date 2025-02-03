@@ -41,35 +41,43 @@ function turb_random(m, r, correlation_length)
     v
 end
 
-# Perlin noise
+# Perlin noise with finer variations and jitter
 function turb_perlin(m, r, theta, correlation_length)
     
     keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
 
-    # perlin_noise takes cartesian coordinates
+    # Convert to cartesian coordinates
     x = r * cos(theta)
     y = r * sin(theta)
 
-    scale_factor = 2
+    scale_factor = 0.2 
 
-    # generate Perlin noise for x,y sample
     perlin_noise = perlin_2d(seed=1)
 
-    # sample noise at scaled coordinates (x, y)
-    noise = scale_factor * sample(perlin_noise, x / correlation_length, y / correlation_length)
+    # Manually adjust spatial frequency to increase variation (multi-octave, sim to fBm)
+    noise1 = sample(perlin_noise, (x / correlation_length) * 2.0, (y / correlation_length) * 2.0)
+    noise2 = sample(perlin_noise, (x / correlation_length) * 4.0, (y / correlation_length) * 4.0) * 0.5
+    noise3 = sample(perlin_noise, (x / correlation_length) * 8.0, (y / correlation_length) * 8.0) * 0.25
+
+    # Combine multi-octave Perlin noise to be comparable to fBm structure
+    noise = scale_factor * (noise1 + noise2 + noise3) 
+
+    # Add small random 'jitter' to break up smoothness
+    noise += 0.01 * randn()
 
     vt = SVector(0, noise, 0, 0)
     
-    # add noise to Keplerian velocities
+    # Add noise to Keplerian velocities
     v = keplerian .+ vt
 
     x = SVector(0.0, r, π/2, 0.0)
 
-    # ensure magnitude of 1
+    # Ensure magnitude of 1
     Gradus.constrain_all(m, x, v, 1.0)
     
     return v
 end
+
 
 # fractional Brownian motion (fBm)
 function turb_fbm(m, r, theta, correlation_length)
@@ -82,7 +90,7 @@ function turb_fbm(m, r, theta, correlation_length)
 
     scale_factor = 0.2 
 
-    # generate fBm noise with a specified parameters
+    # generate fBm noise 
     fbm_noise = fbm_fractal_2d(seed=1, octaves=4, frequency=1.0, lacunarity=2.0, persistence=0.5)
 
     # sample the fBm noise at scaled coordinates (x, y) 
@@ -114,7 +122,7 @@ function turbulent_structure(m, r, θ; type, correlation_length)
     end
 end
 
-# visualising the noise distributions (perlin against fBm), and how changing the scale factor affects these:
+# ---------- visualising the noise distributions (perlin against fBm), and how changing the scale factor affects these: ----------
 
 # test params
 m = KerrMetric(1.0, 0.998)  # Metric parameter (adjust as needed)
@@ -143,3 +151,12 @@ println("fBm Noise Extrema: min = $fbm_min, max = $fbm_max")
 histogram(perlin_values, bins=50, alpha=0.6, label="Perlin Noise", normalize=:pdf)
 histogram!(fbm_values, bins=50, alpha=0.6, label="fBm Noise", normalize=:pdf, 
     title="Noise Distribution Comparison", xlabel="Velocity Perturbation", ylabel="Probability Density")
+
+
+
+# ---------- visualising spatial structure of each noise functions (heatmap): ----------
+perlin_matrix = reshape(perlin_values, (100, 100))
+fbm_matrix = reshape(fbm_values, (100, 100))
+
+heatmap(perlin_matrix, title="Perlin Noise Spatial Structure", xlabel="x", ylabel="y")
+heatmap(fbm_matrix, title="fBm Noise Spatial Structure", xlabel="x", ylabel="y")
