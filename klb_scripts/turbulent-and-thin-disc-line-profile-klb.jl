@@ -10,7 +10,7 @@ include("pariev-bromley-equations-klb.jl")
 
 L_eddington(M) = 1.2e46 * (M/1e8)
 
-function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L, L_edd, r_ms, epsilon)
+function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
     g_obs = Gradus.metric(metric, x_obs)
     v_obs = SVector{4, eltype(x_obs)}(1, 0, 0, 0)
 
@@ -23,12 +23,12 @@ function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L
     return PointFunction(_internal_turbulent_redshift)
 end
 
-function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon)
-    return turb_fbm(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon)
+function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
+    return turb_fbm(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
 end
 
-function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon)
-    redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length, a, M, L, L_edd, r_ms, epsilon)
+function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach)
+    redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
     pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
     plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius)
     ε(r) = r^(-q)
@@ -85,7 +85,7 @@ for q in q_values
         flux_zero = calculate_zero_turbulence_line_profile(m, x, d, bins, q)
 
         # Calculate the turbulent line profile
-        flux_turbulent = calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon)
+        flux_turbulent = calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach)
 
         # Plot both profiles on the same axes
         plot(

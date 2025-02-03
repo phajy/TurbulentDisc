@@ -24,21 +24,21 @@ function turb_random(m, r, a, M, L, L_edd, r_ms, epsilon, correlation_length)
 end
 
 # Perlin noise turbulence
-function turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length)
+function turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
     keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
 
     # Convert to Cartesian coordinates
     x = r * cos(theta)
     y = r * sin(theta)
 
-    scale_factor = 0.2
+    scale_factor = 1
 
     # Generate Perlin noise
     perlin_noise = perlin_2d(seed=1)
 
     # Sample Perlin noise 
     noise = scale_factor * sample(perlin_noise, x / correlation_length, y / correlation_length)
-    noise *= c(m, r, a, M, L, L_edd, r_ms, epsilon) # normalise to sound speed
+    noise *= mach * c(m, r, a, M, L, L_edd, r_ms, epsilon) # normalise to sound speed
 
     vt = SVector(0, noise, 0, 0)
     
@@ -53,21 +53,21 @@ function turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_len
 end
 
 # Fractional Brownian motion (fBm) turbulence
-function turb_fbm(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length)
+function turb_fbm(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
     keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
 
     # Convert to Cartesian coordinates
     x = r * cos(theta)
     y = r * sin(theta)
 
-    scale_factor = 0.2
+    scale_factor = 1
 
     # Generate fBm noise
     fbm_noise = fbm_fractal_2d(seed=1, octaves=4, frequency=1.0, lacunarity=2.0, persistence=0.5)
 
     # Sample fBm noise 
     noise = scale_factor * sample(fbm_noise, x / correlation_length, y / correlation_length)
-    noise *= c(m, r, a, M, L, L_edd, r_ms, epsilon)  # normalise to sound speed
+    noise *= mach * c(m, r, a, M, L, L_edd, r_ms, epsilon) # normalise to sound speed
 
     vt = SVector(0, noise, 0, 0)
 
@@ -81,13 +81,13 @@ function turb_fbm(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length
     return v
 end
 
-function turbulent_structure(m, r, θ; type, a, M, L, L_edd, r_ms, epsilon, correlation_length)
+function turbulent_structure(m, r, θ; type, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
     if type == :random
-        return turb_random(m, r, a, M, L, L_edd, r_ms, epsilon, correlation_length)
+        return turb_random(m, r, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
     elseif type == :perlin
-        return turb_perlin(m, r, θ, a, M, L, L_edd, r_ms, epsilon, correlation_length)
+        return turb_perlin(m, r, θ, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
     elseif type == :fbm
-        return turb_fbm(m, r, θ, a, M, L, L_edd, r_ms, epsilon, correlation_length)
+        return turb_fbm(m, r, θ, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
     else
         throw(ArgumentError("Unknown turbulence type: $type"))
     end
@@ -106,6 +106,7 @@ L = 1e46  # Luminosity in ergs/s
 L_edd = eddington_luminosity(M)  # Compute Eddington luminosity
 r_ms = Gradus.isco(m)  # Compute ISCO
 epsilon = 0.1  # Efficiency factor
+mach = 1 # Mach number
 
 # Collect values
 perlin_values = Float64[]
@@ -113,8 +114,8 @@ fbm_values = Float64[]
 
 for r in r_values
     for θ in theta_values
-        push!(perlin_values, turb_perlin(m, r, θ, a, M, L, L_edd, r_ms, epsilon, correlation_length)[2])
-        push!(fbm_values, turb_fbm(m, r, θ, a, M, L, L_edd, r_ms, epsilon, correlation_length)[2])
+        push!(perlin_values, turb_perlin(m, r, θ, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)[2])
+        push!(fbm_values, turb_fbm(m, r, θ, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)[2])
     end
 end
 

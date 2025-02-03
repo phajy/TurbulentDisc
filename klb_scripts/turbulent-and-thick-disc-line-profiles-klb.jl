@@ -53,12 +53,12 @@ r_ms = Gradus.isco(m)  # Compute ISCO
 epsilon = 0.1  # Efficiency factor
 
 # Turbulent redshift function
-function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L, L_edd, r_ms, epsilon)
+function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
     g_obs = Gradus.metric(metric, x_obs)
     v_obs = SVector{4, eltype(x_obs)}(1, 0, 0, 0)
 
     function _internal_turbulent_redshift(m::AbstractMetric, gp, t)
-        v_disc = vel_func(m, gp.x[2], gp.x[4], correlation_length, a, M, L, L_edd, r_ms, epsilon)
+        v_disc = vel_func(m, gp.x[2], gp.x[4], correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
         g = Gradus.metric(m, gp.x)
         Gradus.RedshiftFunctions._redshift_dotproduct(g, v_disc, g_obs, v_obs, gp)
     end
@@ -66,13 +66,13 @@ function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L
     return PointFunction(_internal_turbulent_redshift)
 end
 
-function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon)
-    return turb_fbm(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon)
+function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
+    return turb_fbm(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
 end
 
 # Line profile functions
-function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon)
-    redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length, a, M, L, L_edd, r_ms, epsilon)
+function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach)
+    redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
     pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
     plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius, r_min = inner_radius)
     ε(r) = r^(-q)
@@ -112,7 +112,7 @@ for q in q_values
         
         # Compute line profiles
         flux_zero_turbulence = calculate_zero_turbulence_line_profile(m, x_obs, thick_disc, bins, q)
-        flux_turbulent = calculate_turbulent_line_profile(m, x_obs, thick_disc, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon)
+        flux_turbulent = calculate_turbulent_line_profile(m, x_obs, thick_disc, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach)
         
         # Create a new plot for each combination
         plot(
