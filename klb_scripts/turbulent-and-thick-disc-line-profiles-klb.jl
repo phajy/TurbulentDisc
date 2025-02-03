@@ -112,7 +112,7 @@ for q in q_values
         
         # Compute line profiles
         flux_zero_turbulence = calculate_zero_turbulence_line_profile(m, x_obs, thick_disc, bins, q)
-        flux_turbulent = calculate_turbulent_line_profile(m, x_obs, thick_disc, bins, correlation_length, a, M, L, L_edd, r_ms, epsilon)
+        flux_turbulent = calculate_turbulent_line_profile(m, x_obs, thick_disc, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon)
         
         # Create a new plot for each combination
         plot(

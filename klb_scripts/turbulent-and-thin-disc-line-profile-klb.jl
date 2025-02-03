@@ -85,7 +85,7 @@ for q in q_values
         flux_zero = calculate_zero_turbulence_line_profile(m, x, d, bins, q)
 
         # Calculate the turbulent line profile
-        flux_turbulent = calculate_turbulent_line_profile(m, x, d, bins, correlation_length, a, M, L, L_edd, r_ms, epsilon)
+        flux_turbulent = calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon)
 
         # Plot both profiles on the same axes
         plot(
