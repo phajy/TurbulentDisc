@@ -36,9 +36,9 @@ function turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_len
     # Generate Perlin noise
     perlin_noise = perlin_2d(seed=1)
 
-    # Sample Perlin noise and normalize to sound speed
+    # Sample Perlin noise 
     noise = scale_factor * sample(perlin_noise, x / correlation_length, y / correlation_length)
-    noise *= c(m, r, a, M, L, L_edd, r_ms, epsilon)  # Normalize
+    noise *= c(m, r, a, M, L, L_edd, r_ms, epsilon) # normalise to sound speed
 
     vt = SVector(0, noise, 0, 0)
     
@@ -65,9 +65,9 @@ function turb_fbm(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length
     # Generate fBm noise
     fbm_noise = fbm_fractal_2d(seed=1, octaves=4, frequency=1.0, lacunarity=2.0, persistence=0.5)
 
-    # Sample fBm noise and normalize to sound speed
+    # Sample fBm noise 
     noise = scale_factor * sample(fbm_noise, x / correlation_length, y / correlation_length)
-    noise *= c(m, r, a, M, L, L_edd, r_ms, epsilon)  # Normalize
+    noise *= c(m, r, a, M, L, L_edd, r_ms, epsilon)  # normalise to sound speed
 
     vt = SVector(0, noise, 0, 0)
 
