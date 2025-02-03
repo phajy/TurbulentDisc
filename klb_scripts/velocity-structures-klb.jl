@@ -1,6 +1,6 @@
 # Script includes the various velocity functions used to model turbulence
 
-using Gradus, Plots, CoherentNoise, Statistics
+using Gradus, Plots, CoherentNoise, Statistics, StaticArrays, LinearAlgebra
 
 function logrange(first, last, num)
     10 .^ collect(range(log10(first), log10(last), num))
@@ -50,24 +50,19 @@ function turb_perlin(m, r, theta, correlation_length)
     x = r * cos(theta)
     y = r * sin(theta)
 
-    scale_factor = 0.2 
+    scale_factor = 0.2
 
+    # Generate Perlin noise
     perlin_noise = perlin_2d(seed=1)
 
-    # Manually adjust spatial frequency to increase variation (multi-octave, sim to fBm)
-    noise1 = sample(perlin_noise, (x / correlation_length) * 2.0, (y / correlation_length) * 2.0)
-    noise2 = sample(perlin_noise, (x / correlation_length) * 4.0, (y / correlation_length) * 4.0) * 0.5
-    noise3 = sample(perlin_noise, (x / correlation_length) * 8.0, (y / correlation_length) * 8.0) * 0.25
+    noise = scale_factor * sample(perlin_noise, x / correlation_length, y / correlation_length)
 
-    # Combine multi-octave Perlin noise to be comparable to fBm structure
-    noise = scale_factor * (noise1 + noise2 + noise3) 
-
-    # Add small random 'jitter' to break up smoothness
+    # Add a small random jitter to break large-scale coherence/ smoothness
     noise += 0.01 * randn()
 
     vt = SVector(0, noise, 0, 0)
     
-    # Add noise to Keplerian velocities
+    # Add noise to Keplerian velocity
     v = keplerian .+ vt
 
     x = SVector(0.0, r, π/2, 0.0)
@@ -77,7 +72,6 @@ function turb_perlin(m, r, theta, correlation_length)
     
     return v
 end
-
 
 # fractional Brownian motion (fBm)
 function turb_fbm(m, r, theta, correlation_length)
