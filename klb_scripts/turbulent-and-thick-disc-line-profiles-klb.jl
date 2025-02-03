@@ -14,6 +14,8 @@ m = Gradus.KerrMetric(M=1.0, a=0.998)
 inner_radius = Gradus.isco(m)
 outer_radius = 400.0
 
+L_eddington(M) = 1.2e46 * (M/1e8) # edd luminosity
+
 # Define the disc height profile, this is handled the same way as the finite thickness disc in 
 # Pariev & Bromley (1998), which is based on Novikov & Thorne (1973) (ultimately the Shakura-Sunyaev model,
 # where h_scale < 1)
@@ -41,13 +43,21 @@ q_values = [2, 3, 4]
 bins = collect(range(0.1, 1.5, length=200))
 correlation_length = 1.0
 
+# Define parameters for sound speed normalisation
+a = 0.998  # Black hole spin
+M = 1.0  # Black hole mass in geometrised units
+L = 1e46  # Luminosity in ergs/s
+L_edd = L_eddington(M)  # Compute Eddington luminosity
+r_ms = Gradus.isco(m)  # Compute ISCO
+epsilon = 0.1  # Efficiency factor
+
 # Turbulent redshift function
-function turbulent_redshift(metric, x_obs, vel_func, correlation_length)
+function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L, L_edd, r_ms, epsilon)
     g_obs = Gradus.metric(metric, x_obs)
     v_obs = SVector{4, eltype(x_obs)}(1, 0, 0, 0)
 
     function _internal_turbulent_redshift(m::AbstractMetric, gp, t)
-        v_disc = vel_func(m, gp.x[2], gp.x[4], correlation_length)
+        v_disc = vel_func(m, gp.x[2], gp.x[4], correlation_length, a, M, L, L_edd, r_ms, epsilon)
         g = Gradus.metric(m, gp.x)
         Gradus.RedshiftFunctions._redshift_dotproduct(g, v_disc, g_obs, v_obs, gp)
     end
@@ -55,13 +65,13 @@ function turbulent_redshift(metric, x_obs, vel_func, correlation_length)
     return PointFunction(_internal_turbulent_redshift)
 end
 
-function velocity_wrapper(m, r, theta, correlation_length)
-    return turb_fbm(m, r, theta, correlation_length)
+function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon)
+    return turb_fbm(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon)
 end
 
 # Line profile functions
-function calculate_turbulent_line_profile(m, x, d, bins, correlation_length)
-    redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length)
+function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, a, M, L, L_edd, r_ms, epsilon)
+    redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length,, a, M, L, L_edd, r_ms, epsilon)
     pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
     plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius, r_min = inner_radius)
     _, f = lineprofile(
@@ -106,7 +116,7 @@ for q in q_values
         
         # Compute line profiles
         flux_zero_turbulence = calculate_zero_turbulence_line_profile(m, x_obs, thick_disc, bins, q)
-        flux_turbulent = calculate_turbulent_line_profile(m, x_obs, thick_disc, bins, correlation_length)
+        flux_turbulent = calculate_turbulent_line_profile(m, x_obs, thick_disc, bins, correlation_length, a, M, L, L_edd, r_ms, epsilon)
         
         # Create a new plot for each combination
         plot(
