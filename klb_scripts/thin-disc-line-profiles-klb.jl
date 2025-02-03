@@ -24,13 +24,14 @@ bins = collect(range(0.1, 1.5, 200))
 function calculate_line_profile(m, x, d, bins, q)
     ε(r) = r^(-q)  # Define emissivity function with given index q
     _, f = lineprofile(
+        bins,      
+        ε,   
         m,
         x,
         d,
         method = BinningMethod(),
         callback = domain_upper_hemisphere(),
         verbose = true,
-        bins = bins
     )
     return f
 end

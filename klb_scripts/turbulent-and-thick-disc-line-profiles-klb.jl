@@ -91,13 +91,14 @@ end
 function calculate_zero_turbulence_line_profile(m, x, d, bins, q)
     ε(r) = r^(-q)
     _, f = lineprofile(
+        bins,      
+        ε,   
         m,
         x,
         d,
         method = BinningMethod(),
         callback = domain_upper_hemisphere(),
         verbose = true,
-        bins = bins
     )
     return f
 end
