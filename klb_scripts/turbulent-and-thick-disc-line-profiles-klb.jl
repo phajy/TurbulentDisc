@@ -75,13 +75,15 @@ function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, a, 
     redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length, a, M, L, L_edd, r_ms, epsilon)
     pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
     plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius, r_min = inner_radius)
+    ε(r) = r^(-q)
     _, f = lineprofile(
+        bins,      
+        ε,   
         m,
         x,
         d,
         redshift_pf = pf,
         method = BinningMethod(),
-        bins = bins,
         plane = plane
     )
     f[end] = 0
