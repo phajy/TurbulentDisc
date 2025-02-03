@@ -71,7 +71,7 @@ function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms,
 end
 
 # Line profile functions
-function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, a, M, L, L_edd, r_ms, epsilon)
+function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon)
     redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length, a, M, L, L_edd, r_ms, epsilon)
     pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
     plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius, r_min = inner_radius)
