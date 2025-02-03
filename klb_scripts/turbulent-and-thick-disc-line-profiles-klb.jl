@@ -6,6 +6,7 @@ using Plots, Gradus
 
 # Import turbulent velocity functions
 include("velocity-structures-klb.jl")
+include("pariev-bromley-equations-klb.jl")
 
 # Define the Kerr metric
 m = Gradus.KerrMetric(M=1.0, a=0.998)
@@ -100,14 +101,6 @@ function calculate_zero_turbulence_line_profile(m, x, d, bins, q)
     )
     return f
 end
-
-# Initialise the plot
-p = plot(
-    xlabel = "Redshift",
-    ylabel = "Flux (arbitrary units)",
-    title = "Finite-Thickness Disc Line Profile (Zero Turbulence vs Turbulent)",
-    legend = :topleft
-)
 
 # Iterate through all combinations of inclination angles and emissivity indices
 for q in q_values
