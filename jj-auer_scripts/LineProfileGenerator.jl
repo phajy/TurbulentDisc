@@ -35,28 +35,41 @@ end
 
 
 # --- Zero Turbulence Thin Disc Line Profile ---
-function calculate_line_profile(m, x, d, a, M, lum, bins, turbulenceOn = false, correlation_length=1, mach=1)
+function calculate_line_profile(
+    m,
+    x,
+    d,
+    a,
+    M,
+    lum,
+    bins,
+    ε,
+    turbulenceOn = false,
+    correlation_length=1,
+    mach=1
+    )
+    
 
     if turbulenceOn == false
 
-        ε(r) = r^(-1)  # Define emissivity function with given index q
         _, f = lineprofile(
+            bins,
+            ε,
             m,
             x,
             d,
             method = BinningMethod(),
             callback = domain_upper_hemisphere(),
-            verbose = true,
-            bins = bins
+            verbose = true
         )
 
     elseif turbulenceOn == true
 
-        ε(r) = r^(-1)  # Define emissivity function with given index q
         redshift_pf = turbulent_redshift(m, x, velocity_wrapper, a, M, lum, correlation_length, mach)
         pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
         plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius, r_min = inner_radius)
         _, f = lineprofile(
+            ε,
             m,
             x,
             d,
@@ -135,7 +148,10 @@ x = SVector(0.0, 1000.0, deg2rad(60), 0.0)
 a = 0.998
 M = 1.0
 lum = 1e46
-f = calculate_line_profile(m, x, d, a, M, lum, bins, false, 1)
+turbulence_on = true
+corona = LampPostModel(h = 10.0)
+ε(r) = r^(-7)
+f = calculate_line_profile(m, x, d, a, M, lum, bins, ε, turbulence_on, 1)
 
 
 
