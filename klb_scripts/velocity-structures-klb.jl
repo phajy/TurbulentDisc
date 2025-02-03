@@ -1,6 +1,6 @@
 # Script includes the various velocity functions used to model turbulence
 
-using Gradus, Plots, CoherentNoise
+using Gradus, Plots, CoherentNoise, Statistics
 
 function logrange(first, last, num)
     10 .^ collect(range(log10(first), log10(last), num))
@@ -50,7 +50,7 @@ function turb_perlin(m, r, theta, correlation_length)
     x = r * cos(theta)
     y = r * sin(theta)
 
-    scale_factor = 5 
+    scale_factor = 2
 
     # generate Perlin noise for x,y sample
     perlin_noise = perlin_2d(seed=1)
@@ -68,7 +68,7 @@ function turb_perlin(m, r, theta, correlation_length)
     # ensure magnitude of 1
     Gradus.constrain_all(m, x, v, 1.0)
     
-    v
+    return v
 end
 
 # fractional Brownian motion (fBm)
@@ -113,3 +113,33 @@ function turbulent_structure(m, r, θ; type, correlation_length)
         throw(ArgumentError("Unknown turbulence type: $type"))
     end
 end
+
+# visualising the noise distributions (perlin against fBm), and how changing the scale factor affects these:
+
+# test params
+m = KerrMetric(1.0, 0.998)  # Metric parameter (adjust as needed)
+r_values = range(2.0, 10.0, length=100)  # Radial range
+theta_values = range(0, 2π, length=100)  # Angular range
+correlation_length = 2.0
+
+# extrema vals
+perlin_values = Float64[]
+fbm_values = Float64[]
+
+for r in r_values
+    for θ in theta_values
+        # Extract noise component (2nd index of vt)
+        push!(perlin_values, turb_perlin(m, r, θ, correlation_length)[2])
+        push!(fbm_values, turb_fbm(m, r, θ, correlation_length)[2])
+    end
+end
+
+perlin_min, perlin_max = extrema(perlin_values)
+fbm_min, fbm_max = extrema(fbm_values)
+
+println("Perlin Noise Extrema: min = $perlin_min, max = $perlin_max")
+println("fBm Noise Extrema: min = $fbm_min, max = $fbm_max")
+
+histogram(perlin_values, bins=50, alpha=0.6, label="Perlin Noise", normalize=:pdf)
+histogram!(fbm_values, bins=50, alpha=0.6, label="fBm Noise", normalize=:pdf, 
+    title="Noise Distribution Comparison", xlabel="Velocity Perturbation", ylabel="Probability Density")
