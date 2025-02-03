@@ -21,7 +21,7 @@ function turbulent_redshift(metric, x_obs, vel_func, correlation_length)
 end
 
 function velocity_wrapper(m, r, theta, correlation_length)
-    return turb_fbm(m, r, theta, correlation_length)
+    return turb_perlin(m, r, theta, correlation_length)
 end
 
 function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q)
@@ -58,10 +58,10 @@ m = KerrMetric(1.0, 0.998)
 inner_radius = Gradus.isco(m)
 outer_radius = 400.0
 # Create Shakura-Sunyaev disc with default parameters
-d = ShakuraSunyaev(m)
+d = ShakuraSunyaev(m, eddington_ratio=0.5)
 
 bins = collect(range(0.1, 1.5, 200))
-correlation_length = 2  # Correlation length for turbulence
+correlation_length = 1  # Correlation length for turbulence
 
 # Define inclination angles and emissivity indices
 inc_angles = [30, 60, 75]
@@ -90,8 +90,8 @@ for q in q_values
         )
         plot!(
             bins, flux_turbulent,
-            linestyle = :dash,
-            label = "Turbulent (fBm): i = $inc_angle, q = $q, L_corr = $correlation_length",
+            linestyle = :dot,
+            label = "Turbulent (Perlin): i = $inc_angle, q = $q, L_corr = $correlation_length",
             lw = 1
         )
 
