@@ -135,13 +135,6 @@ function SoundSpeed(m, r, a, M, lum)
     r_star = r/M
     a_star = a/M
 
-    
-    """print(A(r_star, a_star, M))
-    print(B(r_star, a_star, M))
-    print(D(r_star, a_star, M))
-    print(E(r_star, a_star, M))
-    print(Q(r, a, M))"""
-
     return 1.18 *
     (efficiency(m)^(-1)) *
     (lum/LumEdd(M)) *
@@ -177,25 +170,22 @@ function RadialSpeed(m, r, a, alpha, M, lum)
 
 end
 
-"""
-
-a = 0.998
 M = 1.0
-m = KerrMetric(M = M, a = a)
-alpha = 0.3
+alpha = 0.1
 lum = 1e46
 
-rPos = collect(range(1.0, stop=25.0, length=200))
+plt = plot(
+    xlabel = "Radius (r/M)",
+    ylabel = "Sound Speed (v/c)",
+    title = "Sound Speed vs. Radius",
+    legend = :topright,
+)
 
-cs = [SoundSpeed(m, r, a, M, lum) for r in rPos]
-plot(rPos, cs)
+rPos = collect(range(1.0, stop=25.0, length=500))
 
-for a in [0.99, 0.9, 0.5, 0.0]
-
-    cs = [SoundSpeed(m, r, a, M, lum) for r in rPos]
-    plot!(rPos, cs)
-
+for a in [0, 0.5, 0.90, 0.99, 0.998]
+    m = KerrMetric(M = M, a = a)
+    plot!(rPos, [SoundSpeed(m, r, a, M, lum) for r in rPos], label="a/M = $a")
 end
 
-display(current())
-"""
+display(plt)
