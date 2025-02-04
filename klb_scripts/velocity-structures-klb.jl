@@ -83,7 +83,7 @@ end
 
 function turbulent_structure(m, r, θ; type, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
     if type == :random
-        return turb_random(m, r, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
+        return turb_random(m, r, a, M, L, L_edd, r_ms, epsilon, correlation_length)
     elseif type == :perlin
         return turb_perlin(m, r, θ, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
     elseif type == :fbm
