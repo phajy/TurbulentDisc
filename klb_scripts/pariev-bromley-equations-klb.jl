@@ -116,5 +116,6 @@ function sound_speed_ratio(r, a, epsilon, L, L_edd, r_ms, M)
     E_val = E(r, a)
     Q_val = Q(r, a, M)
 
-    return factor * A_val * B_val^(-2) * D_val^(-1/2) * E_val^(-1/2) * Q_val
+    c = 3.0e8 
+    return (factor * A_val * B_val^(-2) * D_val^(-1/2) * E_val^(-1/2) * Q_val) / c
 end
