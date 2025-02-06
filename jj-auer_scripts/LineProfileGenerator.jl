@@ -4,6 +4,7 @@
 # Import libraries
 using Plots, Gradus
 include("TurbulenceMaps.jl")
+x = SVector(0.0, 1_000.0, deg2rad(40), 0.0)
 
 # Functions used for turbulence
 # +------------------------------------------------------------------------------+
@@ -52,32 +53,62 @@ function calculate_line_profile(
 
     if turbulenceOn == false
 
-        _, f = lineprofile(
-            bins,
-            ε,
-            m,
-            x,
-            d,
-            method = BinningMethod(),
-            callback = domain_upper_hemisphere(),
-            verbose = true
-        )
+        if typeof(ε) <: Gradus.RadialDiscProfile
+
+            _, f = lineprofile(
+                m,
+                x,
+                d,
+                ε;
+                bins = bins,
+                verbose = true
+            )
+
+        else
+
+            _, f = lineprofile(
+                bins,
+                ε,
+                m,
+                x,
+                d;
+                method = TransferFunctionMethod(),
+                verbose = true
+            )
+
+        end
+
 
     elseif turbulenceOn == true
 
         redshift_pf = turbulent_redshift(m, x, velocity_wrapper, a, M, lum, correlation_length, mach)
         pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
-        plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius, r_min = inner_radius)
-        _, f = lineprofile(
-            ε,
-            m,
-            x,
-            d,
-            redshift_pf = pf,
-            method = BinningMethod(),
-            verbose = true,
-            bins = bins,
-            plane = plane)
+
+        if typeof(ε) <: Gradus.RadialDiscProfile
+
+            _, f = lineprofile(
+                m,
+                x,
+                d,
+                ε;
+                method = BinningMethod(),
+                redshift_pf = pf,
+                bins = bins,
+                verbose = true)
+
+        else
+
+            _, f = lineprofile(
+                bins,
+                ε,
+                m,
+                x,
+                d;
+                method = BinningMethod(),
+                redshift_pf = pf,
+                verbose = true)
+
+        end
 
     end
 
@@ -95,14 +126,12 @@ function calculate_line_profile(
 end
 
 
-m = KerrMetric(1.0, 0.998)
-inner_radius = Gradus.isco(m)
-outer_radius = 400.0
+
 
 # +--------- Thin Discs ---------+
 
 # Arbitrary Thin Disc
-d = ThinDisc(inner_radius, outer_radius)
+#d = ThinDisc(inner_radius, outer_radius)
 
 # +------------------------------+
 
@@ -110,7 +139,7 @@ d = ThinDisc(inner_radius, outer_radius)
 # +--------- Thick Discs ---------+
 
 # Shakura Sunyaev Disc
-#d = ShakuraSunyaev(m, eddington_ratio = 0.3)
+
 
 # Arbitrary Thick Disc
 
@@ -143,18 +172,35 @@ end
 
 # +------------------------------+
 
-bins = collect(range(0.1, 1.5, 200))
-x = SVector(0.0, 1000.0, deg2rad(60), 0.0)
-a = 0.998
-M = 1.0
-lum = 1e46
-turbulence_on = true
-corona = LampPostModel(h = 10.0)
-ε(r) = r^(-7)
-f = calculate_line_profile(m, x, d, a, M, lum, bins, ε, turbulence_on, 1)
 
-
-
-plot(
-    bins, f
+plt = plot(
+    xlabel = "ν / ν_e",
+    ylabel = "Flux (Arbitrary Units)",
+    title = "Iron Kα Line Profile",
+    legend = :topleft,
 )
+
+
+for inclination in [40]
+    a = 0.998
+    m = KerrMetric(1.0, a)
+    d = ShakuraSunyaev(m, eddington_ratio = 0.3)
+    inner_radius = Gradus.isco(m)
+    outer_radius = 15
+    bins = collect(range(0.1, 1.5, 200))
+    x = SVector(0.0, 1000.0, deg2rad(inclination), 0.0)
+    M = 1.0
+    lum = 1e46
+    turbulence_on = true
+    model = LampPostModel(h = 10.0)
+    q = 3
+    ε = emissivity_profile(m, d, model)
+    print(typeof(ε))
+    #ε(r) = r^(-q)
+    f = calculate_line_profile(m, x, d, a, M, lum, bins, ε, turbulence_on, 1)
+    plot!(bins, f, label="Inclination Angle: $inclination °")
+end
+
+
+display(plt)
+#savefig(plt, "Other/Figs/LeverTweaking/40degree_inclination.png")
