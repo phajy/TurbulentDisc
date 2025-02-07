@@ -24,7 +24,7 @@ function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L
 end
 
 function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
-    return turb_fbm(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
+    return turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
 end
 
 function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach)
@@ -92,7 +92,7 @@ for q in q_values
             xlabel = "Redshift",
             ylabel = "Flux (arbitrary units)",
             legend = :topleft,
-            lw = 0.8,
+            lw = 0.6,
             color = :black,
             linestyle = :solid
         )
@@ -110,6 +110,15 @@ for q in q_values
             color = :black,
             linestyle = :dash
         )
+
+        annot_text = L"i = %$inc_angle^{\circ},\quad q = %$q"
+
+        annot_x = 1.4
+
+        annot_y = maximum(flux_zero) * 0.93  
+
+        annotate!(annot_x, annot_y, text(annot_text, 11, :black, :right))
+
 
         # Display the plot for this (q, i) combination
         display(current())
