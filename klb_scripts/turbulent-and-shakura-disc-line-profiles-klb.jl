@@ -80,7 +80,7 @@ for q in q_values
         x = SVector(0.0, 1000.0, deg2rad(inc_angle), 0.0)
 
         # Calculate the zero turbulence line profile (set Eddington ratio to 0.0 for a truly thin disc)
-        flux_zero = calculate_zero_turbulence_line_profile(m, x, ShakuraSunyaev(m, eddington_ratio=0.0), bins, q)
+        flux_zero = calculate_zero_turbulence_line_profile(m, x, ShakuraSunyaev(m, eddington_ratio=0.3), bins, q)
 
         # Calculate the turbulent line profiles for different Eddington ratios
         flux_turbulent_05 = calculate_turbulent_line_profile(m, x, ShakuraSunyaev(m, eddington_ratio=0.5), bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach)
@@ -94,21 +94,21 @@ for q in q_values
             legend = :topleft,
             lw = 0.8,
             color = :black,
-            linestyle = :dash
+            linestyle = :solid
         )
         plot!(
             bins, flux_turbulent_05,
             label = "Turbulent " * L"(L_{Edd} = 0.5)",
-            lw = 2, 
+            lw = 0.8, 
             color = :black,
-            linestyle = :dot
+            linestyle = :dashdot
         )
         plot!(
             bins, flux_turbulent_1,
             label = "Turbulent " * L"(L_{Edd} = 1.0)",
             lw = 0.8, 
             color = :black,
-            linestyle = :dashdot
+            linestyle = :dash
         )
 
         # Display the plot for this (q, i) combination
