@@ -24,7 +24,7 @@ function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L
 end
 
 function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
-    return turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
+    return turb_fbm(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
 end
 
 function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach)
@@ -98,29 +98,47 @@ for q in q_values
         )
         plot!(
             bins, flux_turbulent_05,
-            label = "Turbulent " * L"(L_{Edd} = 0.5)",
+            label = "Turbulent " * L"(L_{Edd} = 0.5, M = %$mach)",
             lw = 0.8, 
             color = :black,
             linestyle = :dashdot
         )
         plot!(
             bins, flux_turbulent_1,
-            label = "Turbulent " * L"(L_{Edd} = 1.0)",
+            label = "Turbulent " * L"(L_{Edd} = 1.0, M = %$mach)",
             lw = 0.8, 
             color = :black,
             linestyle = :dash
         )
 
-        annot_text = L"i = %$inc_angle^{\circ},\quad q = %$q"
+        annot_text_i = L"i = %$inc_angle^{\circ}"
+        annot_text_q = L"q = %$q"
 
         annot_x = 1.4
 
-        annot_y = maximum(flux_zero) * 0.93  
+        annot_y_max = maximum(flux_zero)
+        offset = 0.02 * annot_y_max 
+        
+        annot_y_i = annot_y_max + offset 
+        annot_y_q = annot_y_i - offset    
 
-        annotate!(annot_x, annot_y, text(annot_text, 11, :black, :right))
+        annotate!(annot_x, annot_y_i, text(annot_text_i, 11, :black, :right))
+        annotate!(annot_x, annot_y_q, text(annot_text_q, 11, :black, :right))
 
 
         # Display the plot for this (q, i) combination
         display(current())
+        
+        # Save plot for this (q, i) combination
+        output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\fBm-line-profiles"
+        mkpath(output_dir)
+
+        # Generate filename with inclination angle, emissivity index, and Mach number
+        filename = joinpath(output_dir, "line_profile_i$(inc_angle)_q$(q)_M$(mach).png")
+
+        # Save the figure
+        savefig(filename)
+        println("Saved figure to: $filename")
+
     end
 end
