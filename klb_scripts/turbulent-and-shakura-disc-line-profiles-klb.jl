@@ -24,7 +24,7 @@ function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L
 end
 
 function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
-    return turb_fbm(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
+    return turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
 end
 
 function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach)
@@ -92,21 +92,21 @@ for q in q_values
             xlabel = "Redshift",
             ylabel = "Flux (arbitrary units)",
             legend = :topleft,
-            lw = 0.6,
+            lw = 0.8,
             color = :black,
             linestyle = :solid
         )
         plot!(
             bins, flux_turbulent_05,
             label = "Turbulent " * L"(L_{Edd} = 0.5, M = %$mach)",
-            lw = 0.8, 
+            lw = 1, 
             color = :black,
             linestyle = :dashdot
         )
         plot!(
             bins, flux_turbulent_1,
             label = "Turbulent " * L"(L_{Edd} = 1.0, M = %$mach)",
-            lw = 0.8, 
+            lw = 1, 
             color = :black,
             linestyle = :dash
         )
@@ -117,10 +117,10 @@ for q in q_values
         annot_x = 1.4
 
         annot_y_max = maximum(flux_zero)
-        offset = 0.02 * annot_y_max 
+        offset = 0.1 * annot_y_max 
         
-        annot_y_i = annot_y_max + offset 
-        annot_y_q = annot_y_i - offset    
+        annot_y_i = annot_y_max - offset 
+        annot_y_q = annot_y_i - (1.1*offset)    
 
         annotate!(annot_x, annot_y_i, text(annot_text_i, 11, :black, :right))
         annotate!(annot_x, annot_y_q, text(annot_text_q, 11, :black, :right))
@@ -130,7 +130,7 @@ for q in q_values
         display(current())
         
         # Save plot for this (q, i) combination
-        output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\fBm-line-profiles"
+        output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles"
         mkpath(output_dir)
 
         # Generate filename with inclination angle, emissivity index, and Mach number
