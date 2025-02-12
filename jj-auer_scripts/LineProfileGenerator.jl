@@ -4,6 +4,7 @@
 # Import libraries
 using Plots, Gradus
 include("TurbulenceMaps.jl")
+include("SoundSpeed.jl")
 x = SVector(0.0, 1_000.0, deg2rad(40), 0.0)
 
 # Functions used for turbulence
@@ -180,27 +181,38 @@ plt = plot(
     legend = :topleft,
 )
 
+"""
+Defaults Parameters:
 
-for inclination in [40]
-    a = 0.998
-    m = KerrMetric(1.0, a)
-    d = ShakuraSunyaev(m, eddington_ratio = 0.3)
-    inner_radius = Gradus.isco(m)
-    outer_radius = 15
-    bins = collect(range(0.1, 1.5, 200))
-    x = SVector(0.0, 1000.0, deg2rad(inclination), 0.0)
-    M = 1.0
-    lum = 1e46
-    turbulence_on = true
-    model = LampPostModel(h = 10.0)
-    q = 3
-    ε = emissivity_profile(m, d, model)
-    print(typeof(ε))
-    #ε(r) = r^(-q)
-    f = calculate_line_profile(m, x, d, a, M, lum, bins, ε, turbulence_on, 1)
-    plot!(bins, f, label="Inclination Angle: $inclination °")
-end
+Metric: Kerr
+Disc Type: Shakura-Sunyaev, Eddington Ratio: 0.3
+Radii Limits: ISCO, 15M
+Bin Limits: 0.1, 1.5
+Svector: (0.0, 1000.0, deg2rad(40), 0.0)
+M=1
+Luminosity: 7.2e42
+Turbulence: off
+Emissivity: r^(-q), q=3
+a=0.998
+"""
+
+a = 0.998
+M = 3e6
+lum = 7.2e42
+lum_edd = LumEdd(M)
+print(lum_edd)
+m = KerrMetric(M, a)
+inner_radius = Gradus.isco(m)
+outer_radius = 15.0
+d = Gradus.ShakuraSunyaev(m, eddington_ratio=lum/lum_edd)
+bins = collect(range(0.1, 1.5, 200))
+x = SVector(0.0, 1000.0, deg2rad(40), 0.0)
+turbulence_on = false
+q = 3
+ε(r) = r^(-q)
+f = calculate_line_profile(m, x, d, a, M, lum, bins, ε, turbulence_on, 1)
+plot!(bins, f, label="Luminosity = $lum erg/s")
 
 
 display(plt)
-#savefig(plt, "Other/Figs/LeverTweaking/40degree_inclination.png")
+#savefig(plt, "Other/Figs/LuminosityComparison.png")
