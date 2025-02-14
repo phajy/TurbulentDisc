@@ -174,13 +174,6 @@ end
 # +------------------------------+
 
 
-plt = plot(
-    xlabel = "ν / ν_e",
-    ylabel = "Flux (Arbitrary Units)",
-    title = "Iron Kα Line Profile",
-    legend = :topleft,
-)
-
 """
 Defaults Parameters:
 
@@ -190,29 +183,39 @@ Radii Limits: ISCO, 15M
 Bin Limits: 0.1, 1.5
 Svector: (0.0, 1000.0, deg2rad(40), 0.0)
 M=1
-Luminosity: 7.2e42
+Luminosity: 7.2e42 - check if this is 2-10 kev luniosity or bolometric, including all of it 
 Turbulence: off
 Emissivity: r^(-q), q=3
 a=0.998
 """
 
-a = 0.998
-M = 3e6
-lum = 7.2e42
-lum_edd = LumEdd(M)
-print(lum_edd)
-m = KerrMetric(M, a)
-inner_radius = Gradus.isco(m)
-outer_radius = 15.0
-d = Gradus.ShakuraSunyaev(m, eddington_ratio=lum/lum_edd)
-bins = collect(range(0.1, 1.5, 200))
-x = SVector(0.0, 1000.0, deg2rad(40), 0.0)
-turbulence_on = false
-q = 3
-ε(r) = r^(-q)
-f = calculate_line_profile(m, x, d, a, M, lum, bins, ε, turbulence_on, 1)
-plot!(bins, f, label="Luminosity = $lum erg/s")
 
+plt = plot(
+    xlabel = "ν / ν_e",
+    ylabel = "Flux (Arbitrary Units)",
+    title = "Iron Kα Line Profile",
+    legend = :topleft,
+)
 
-display(plt)
-#savefig(plt, "Other/Figs/LuminosityComparison.png")
+for ratio in [0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.25, 1.5]
+
+    a = 0.998
+    M = 8e6
+    lum = 7.2e42
+    lum_edd = LumEdd(M)
+    m = KerrMetric(1, a)
+    inner_radius = Gradus.isco(m)
+    outer_radius = 15.0
+    d = Gradus.ShakuraSunyaev(m, eddington_ratio = ratio)
+    bins = collect(range(0.1, 1.5, 200))
+    x = SVector(0.0, 1000.0, deg2rad(40), 0.0)
+    turbulenceOn = false
+    q=3
+    ε(r) = r^(-q)
+
+    f = calculate_line_profile(m, x, d, a, 1, lum, bins, ε)
+    plot!(plt, bins, f, label = "Eddington Ratio = $ratio")
+
+end
+
+savefig(plt, "Other/Figs/LeverTweaking/EddingtonRatio.png")
