@@ -56,26 +56,59 @@ function calculate_line_profile(
 
         if typeof(ε) <: Gradus.RadialDiscProfile
 
-            _, f = lineprofile(
+            if typeof(d) <: Gradus.ThinDisc
+
+                _, f = lineprofile(
                 m,
                 x,
                 d,
                 ε;
                 bins = bins,
-                verbose = true
+                verbose = true,
             )
+
+            else
+
+                _, f = lineprofile(
+                m,
+                x,
+                d,
+                ε;
+                bins = bins,
+                verbose = true,
+                beta1 = 2.0
+            )
+
+            end
 
         else
 
-            _, f = lineprofile(
+            if typeof(d) <: Gradus.ThinDisc
+
+                _, f = lineprofile(
                 bins,
                 ε,
                 m,
                 x,
                 d;
                 method = TransferFunctionMethod(),
-                verbose = true
+                verbose = true,
             )
+
+            else
+
+                _, f = lineprofile(
+                bins,
+                ε,
+                m,
+                x,
+                d;
+                method = TransferFunctionMethod(),
+                verbose = true,
+                beta1 = 2.0
+            )
+
+            end
 
         end
 
@@ -87,7 +120,9 @@ function calculate_line_profile(
 
         if typeof(ε) <: Gradus.RadialDiscProfile
 
-            _, f = lineprofile(
+            if typeof(d) <: Gradus.ThinDisc
+
+                _, f = lineprofile(
                 m,
                 x,
                 d,
@@ -95,11 +130,30 @@ function calculate_line_profile(
                 method = BinningMethod(),
                 redshift_pf = pf,
                 bins = bins,
-                verbose = true)
+                verbose = true,
+            )
+
+            else
+
+                _, f = lineprofile(
+                m,
+                x,
+                d,
+                ε;
+                method = BinningMethod(),
+                redshift_pf = pf,
+                bins = bins,
+                verbose = true,
+                beta1 = 2.0
+            )
+
+            end
 
         else
 
-            _, f = lineprofile(
+            if typeof(d) <: Gradus.ThinDisc
+
+                _, f = lineprofile(
                 bins,
                 ε,
                 m,
@@ -107,7 +161,24 @@ function calculate_line_profile(
                 d;
                 method = BinningMethod(),
                 redshift_pf = pf,
-                verbose = true)
+                verbose = true,
+            )
+
+            else
+
+                _, f = lineprofile(
+                bins,
+                ε,
+                m,
+                x,
+                d;
+                method = BinningMethod(),
+                redshift_pf = pf,
+                verbose = true,
+                beta1 = 2.0
+            )
+
+            end
 
         end
 
@@ -197,25 +268,27 @@ plt = plot(
     legend = :topleft,
 )
 
-for ratio in [0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 1.25, 1.5]
 
-    a = 0.998
-    M = 8e6
-    lum = 7.2e42
-    lum_edd = LumEdd(M)
-    m = KerrMetric(1, a)
-    inner_radius = Gradus.isco(m)
-    outer_radius = 15.0
-    d = Gradus.ShakuraSunyaev(m, eddington_ratio = ratio)
-    bins = collect(range(0.1, 1.5, 200))
-    x = SVector(0.0, 1000.0, deg2rad(40), 0.0)
-    turbulenceOn = false
-    q=3
-    ε(r) = r^(-q)
+a = 0.998
+M = 1.0
+lum = 7.2e42
+lum_edd = LumEdd(M)
+ratio = 0.3
+m = KerrMetric(M, a)
+inner_radius = Gradus.isco(m)
+outer_radius = 15.0
+d = Gradus.ShakuraSunyaev(m, eddington_ratio = ratio)
+bins = collect(range(0.1, 1.5, 200))
+x = SVector(0.0, 1000.0, deg2rad(40), 0.0)
+turbulenceOn = false
+correlation_length = 1
+mach = 1
+q=3
+ε(r) = r^(-q)
 
-    f = calculate_line_profile(m, x, d, a, 1, lum, bins, ε)
-    plot!(plt, bins, f, label = "Eddington Ratio = $ratio")
+f = calculate_line_profile(m, x, d, a, M, lum, bins, ε)
+plot!(plt, bins, f, label = "Eddington Ratio = $ratio")
 
-end
 
-savefig(plt, "Other/Figs/LeverTweaking/EddingtonRatio.png")
+display(plt)
+#savefig(plt, "Other/Figs/LeverTweaking/EddingtonRatio.png")
