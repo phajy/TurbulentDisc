@@ -49,7 +49,11 @@ function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, 
     pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
     plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius)
     ε = get_emissivity_function(m, d, q, emissivity_model)
-    _, f = lineprofile(bins, ε, m, x, d, redshift_pf = pf, method = BinningMethod(), plane = plane)
+    if emissivity_model == "powerlaw"
+        _, f = lineprofile(bins, ε, m, x, d, redshift_pf = pf, method = BinningMethod(), plane = plane)
+    elseif emissivity_model == "lamppost"
+        _, f = lineprofile(m, x, d, ε, bins, redshift_pf = pf, method = BinningMethod(), plane = plane)
+    end
     f[end] = 0
     return f
 end
@@ -57,16 +61,11 @@ end
 # --- Zero Turbulence Shakura-Sunyaev Disc Line Profile ---
 function calculate_zero_turbulence_line_profile(m, x, d, bins, q, emissivity_model)
     ε = get_emissivity_function(m, d, q, emissivity_model)
-    _, f = lineprofile(
-        bins,      
-        ε,          
-        m,         
-        x,          
-        d,          
-        method = BinningMethod(),
-        callback = domain_upper_hemisphere(),
-        verbose = true
-    )
+    if emissivity_model == "powerlaw"
+        _, f = lineprofile(bins, ε, m, x, d, method = BinningMethod(), callback = domain_upper_hemisphere(), verbose = true)
+    elseif emissivity_model == "lamppost"
+        _, f = lineprofile(m, x, d, ε, bins, method = BinningMethod(), callback = domain_upper_hemisphere(), verbose = true)
+    end
     return f
 end
 
@@ -161,7 +160,7 @@ if emissivity_model == "powerlaw"
             
             
             # Save plot for this (q, i) combination
-            #output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles"
+            #output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles\lamppost"
             #mkpath(output_dir)
 
             # Generate filename with inclination angle, emissivity index, and Mach number
@@ -229,7 +228,7 @@ elseif emissivity_model == "lamppost"
         
         
         # Save plot for this i value
-        #output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles"
+        #output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles\lamppost"
         #mkpath(output_dir)
 
         # Generate filename with inclination angle, emissivity index, and Mach number
