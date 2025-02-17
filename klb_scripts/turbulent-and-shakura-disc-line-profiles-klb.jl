@@ -52,7 +52,7 @@ function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, 
     if emissivity_model == "powerlaw"
         _, f = lineprofile(bins, ε, m, x, d, redshift_pf = pf, method = BinningMethod(), plane = plane)
     elseif emissivity_model == "lamppost"
-        _, f = lineprofile(m, x, d, ε, bins, redshift_pf = pf, method = BinningMethod(), plane = plane)
+        _, f = lineprofile(m, x, d, ε; bins, redshift_pf = pf, method = BinningMethod(), plane = plane)
     end
     f[end] = 0
     return f
@@ -64,7 +64,7 @@ function calculate_zero_turbulence_line_profile(m, x, d, bins, q, emissivity_mod
     if emissivity_model == "powerlaw"
         _, f = lineprofile(bins, ε, m, x, d, method = BinningMethod(), callback = domain_upper_hemisphere(), verbose = true)
     elseif emissivity_model == "lamppost"
-        _, f = lineprofile(m, x, d, ε, bins, method = BinningMethod(), callback = domain_upper_hemisphere(), verbose = true)
+        _, f = lineprofile(m, x, d, ε; bins, method = BinningMethod(), callback = domain_upper_hemisphere(), verbose = true)
     end
     return f
 end
@@ -160,15 +160,15 @@ if emissivity_model == "powerlaw"
             
             
             # Save plot for this (q, i) combination
-            #output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles\lamppost"
-            #mkpath(output_dir)
+            output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles\lamppost"
+            mkpath(output_dir)
 
             # Generate filename with inclination angle, emissivity index, and Mach number
-            #filename = joinpath(output_dir, "line_profile_$(emissivity_model)_i$(inc_angle)_q$(q)_M$(mach).png")
+            filename = joinpath(output_dir, "line_profile_$(emissivity_model)_i$(inc_angle)_q$(q)_M$(mach).png")
 
             # Save the figure
-            #savefig(filename)
-            #println("Saved figure to: $filename")
+            savefig(filename)
+            println("Saved figure to: $filename")
         end 
     end
 
@@ -228,15 +228,15 @@ elseif emissivity_model == "lamppost"
         
         
         # Save plot for this i value
-        #output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles\lamppost"
-        #mkpath(output_dir)
+        output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles\lamppost"
+        mkpath(output_dir)
 
         # Generate filename with inclination angle, emissivity index, and Mach number
-        #filename = joinpath(output_dir, "line_profile_$(emissivity_model)_i$(inc_angle)_M$(mach).png")
+        filename = joinpath(output_dir, "line_profile_$(emissivity_model)_i$(inc_angle)_M$(mach).png")
 
         # Save the figure
-        #savefig(filename)
-        #println("Saved figure to: $filename")
+        savefig(filename)
+        println("Saved figure to: $filename")
     end 
 
 end
