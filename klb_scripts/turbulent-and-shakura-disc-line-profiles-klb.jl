@@ -7,7 +7,8 @@ using Plots, Gradus, LaTeXStrings
 include("velocity-structures-klb.jl")
 include("pariev-bromley-equations-klb.jl")
 
-L_eddington(M) = 1.2e46 * (M/1e8) # Eddington luminosity
+# Choose turbulence model: "perlin" or "fbm"
+turbulence_model = "perlin" # "perlin" or "fbm"
 
 # --- Turbulent Shakura-Sunyaev Disc Line Profile ---
 function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
@@ -24,7 +25,11 @@ function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L
 end
 
 function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
-    return turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
+    if turbulence_model == "perlin"
+        return turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
+    elseif turbulence model == "fbm"
+        return return turb_fbm(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
+    end
 end
 
 # Function to calculate emissivity based on chosen model
@@ -65,20 +70,22 @@ function calculate_zero_turbulence_line_profile(m, x, d, bins, q, emissivity_mod
     return f
 end
 
-# --- Combined Plotting ---
+# ---------- Plotting ----------
+
+# Choose emissivity model: "powerlaw" or "lamppost"
+emissivity_model = "lamppost"  # "powerlaw" or "lamppost" 
+
 # Parameters for both models
 m = KerrMetric(1.0, 0.998)
 inner_radius = Gradus.isco(m)
 outer_radius = 400.0
 bins = collect(range(0.1, 1.5, 200))
 correlation_length = 1  # Correlation length for turbulence
+L_eddington(M) = 1.2e46 * (M/1e8) # Eddington luminosity
 
 # Define inclination angles and emissivity indices
 inc_angles = [30, 60, 75]
 q_values = [2, 3, 4]
-
-# Choose emissivity model: "powerlaw" or "lamppost"
-emissivity_model = "powerlaw"  # or "lamppost" 
 
 # Define parameters for sound speed normalisation
 a = 0.998  # Black hole spin
@@ -89,17 +96,97 @@ r_ms = Gradus.isco(m)  # Compute ISCO
 epsilon = 0.1  # Efficiency factor
 mach = 1 # Mach number
 
+# Define the Shakura-Sunyaev disc with Eddington ratio 0.3, 0.5, and 1.0
+d_03 = ShakuraSunyaev(m, eddington_ratio=0.3)
+d_05 = ShakuraSunyaev(m, eddington_ratio=0.5)
+d_1 = ShakuraSunyaev(m, eddington_ratio=1.0)
+
+
 # Plot for each combination of parameters
-for q in q_values
+
+# ---------- Power law emissivity model ----------
+if emissivity_model == "powerlaw"
+    for q in q_values
+        for inc_angle in inc_angles
+            x = SVector(0.0, 1000.0, deg2rad(inc_angle), 0.0)
+
+            # Calculate the zero turbulence line profile (set Eddington ratio to 0.0 for a truly thin disc)
+            flux_zero = calculate_zero_turbulence_line_profile(m, x, d_03, bins, q, emissivity_model)
+
+            # Calculate the turbulent line profiles for different Eddington ratios
+            flux_turbulent_05 = calculate_turbulent_line_profile(m, x, d_05, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach, emissivity_model)
+            flux_turbulent_1 = calculate_turbulent_line_profile(m, x, d_1, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach, emissivity_model)
+
+            plot(
+                bins, flux_zero,
+                label = "Zero turbulence",
+                xlabel = "Redshift",
+                ylabel = "Flux (arbitrary units)",
+                legend = :topleft,
+                lw = 0.8,
+                color = :black,
+                linestyle = :solid
+            )
+            plot!(
+                bins, flux_turbulent_05,
+                label = "Turbulent " * L"(L_{Edd} = 0.5, M = %$mach)",
+                lw = 1, 
+                color = :black,
+                linestyle = :dashdot
+            )
+            plot!(
+                bins, flux_turbulent_1,
+                label = "Turbulent " * L"(L_{Edd} = 1.0, M = %$mach)",
+                lw = 1, 
+                color = :black,
+                linestyle = :dash
+            )
+
+            annot_text_i = L"i = %$inc_angle^{\circ}"
+            annot_text_q = L"q = %$q"
+
+            annot_x = 1.4
+
+            annot_y_max = maximum(flux_zero)
+            offset = 0.1 * annot_y_max 
+            
+            annot_y_i = annot_y_max - offset 
+            annot_y_q = annot_y_i - (1.1*offset)    
+
+            annotate!(annot_x, annot_y_i, text(annot_text_i, 11, :black, :right))
+            annotate!(annot_x, annot_y_q, text(annot_text_q, 11, :black, :right))
+
+            # Display the plot for this (q, i) combination
+            display(current())
+            
+            
+            # Save plot for this (q, i) combination
+            #output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles"
+            #mkpath(output_dir)
+
+            # Generate filename with inclination angle, emissivity index, and Mach number
+            #filename = joinpath(output_dir, "line_profile_$(emissivity_model)_i$(inc_angle)_q$(q)_M$(mach).png")
+
+            # Save the figure
+            #savefig(filename)
+            #println("Saved figure to: $filename")
+        end 
+    end
+
+# ---------- Lamppost emissivity model ----------
+elseif emissivity_model == "lamppost"
     for inc_angle in inc_angles
+
+        q = 1 # redundant for lamppost model but required for function call
+
         x = SVector(0.0, 1000.0, deg2rad(inc_angle), 0.0)
 
         # Calculate the zero turbulence line profile (set Eddington ratio to 0.0 for a truly thin disc)
-        flux_zero = calculate_zero_turbulence_line_profile(m, x, ShakuraSunyaev(m, eddington_ratio=0.3), bins, q, emissivity_model)
+        flux_zero = calculate_zero_turbulence_line_profile(m, x, d_03, bins, q, emissivity_model)
 
         # Calculate the turbulent line profiles for different Eddington ratios
-        flux_turbulent_05 = calculate_turbulent_line_profile(m, x, ShakuraSunyaev(m, eddington_ratio=0.5), bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach, emissivity_model)
-        flux_turbulent_1 = calculate_turbulent_line_profile(m, x, ShakuraSunyaev(m, eddington_ratio=1.0), bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach, emissivity_model)
+        flux_turbulent_05 = calculate_turbulent_line_profile(m, x, d_05, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach, emissivity_model)
+        flux_turbulent_1 = calculate_turbulent_line_profile(m, x, d_1, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach, emissivity_model)
 
         plot(
             bins, flux_zero,
@@ -127,39 +214,30 @@ for q in q_values
         )
 
         annot_text_i = L"i = %$inc_angle^{\circ}"
-        if emissivity_model == "powerlaw"
-            annot_text_q = L"q = %$q"
-        end
 
         annot_x = 1.4
 
         annot_y_max = maximum(flux_zero)
         offset = 0.1 * annot_y_max 
         
-        annot_y_i = annot_y_max - offset 
-        annot_y_q = annot_y_i - (1.1*offset)    
+        annot_y_i = annot_y_max - offset   
 
         annotate!(annot_x, annot_y_i, text(annot_text_i, 11, :black, :right))
-        if emissivity_model == "powerlaw"
-            annotate!(annot_x, annot_y_q, text(annot_text_q, 11, :black, :right))
-        end
 
-        # Display the plot for this (q, i) combination
+        # Display the plot for this i value
         display(current())
         
         
-        # Save plot for this (q, i) combination
+        # Save plot for this i value
         #output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles"
         #mkpath(output_dir)
 
         # Generate filename with inclination angle, emissivity index, and Mach number
-        #filename = joinpath(output_dir, "line_profile_i$(inc_angle)_q$(q)_M$(mach).png")
+        #filename = joinpath(output_dir, "line_profile_$(emissivity_model)_i$(inc_angle)_M$(mach).png")
 
         # Save the figure
         #savefig(filename)
         #println("Saved figure to: $filename")
+    end 
 
-        
-
-    end
 end
