@@ -27,19 +27,31 @@ function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms,
     return turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
 end
 
-function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach)
+# Function to calculate emissivity based on chosen model
+function get_emissivity_function(m, d, q, emissivity_model)
+    if emissivity_model == "powerlaw"
+        return r -> r^(-q)
+    elseif emissivity_model == "lamppost"
+        corona = LampPostModel(h = 10.0)  # Define lamp-post corona
+        return emissivity_profile(m, d, corona)
+    else
+        error("Invalid emissivity model. Choose 'powerlaw' or 'lamppost'.")
+    end
+end
+
+function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach, emissivity_model)
     redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
     pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
     plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius)
-    ε(r) = r^(-q)
+    ε = get_emissivity_function(m, d, q, emissivity_model)
     _, f = lineprofile(bins, ε, m, x, d, redshift_pf = pf, method = BinningMethod(), plane = plane)
     f[end] = 0
     return f
 end
 
 # --- Zero Turbulence Shakura-Sunyaev Disc Line Profile ---
-function calculate_zero_turbulence_line_profile(m, x, d, bins, q)
-    ε(r) = r^(-q)  # Define emissivity function with given index q
+function calculate_zero_turbulence_line_profile(m, x, d, bins, q, emissivity_model)
+    ε = get_emissivity_function(m, d, q, emissivity_model)
     _, f = lineprofile(
         bins,      
         ε,          
@@ -65,6 +77,9 @@ correlation_length = 1  # Correlation length for turbulence
 inc_angles = [30, 60, 75]
 q_values = [2, 3, 4]
 
+# Choose emissivity model: "powerlaw" or "lamppost"
+emissivity_model = "powerlaw"  # or "lamppost" 
+
 # Define parameters for sound speed normalisation
 a = 0.998  # Black hole spin
 M = 1.0  # Black hole mass in geometrized units
@@ -80,11 +95,11 @@ for q in q_values
         x = SVector(0.0, 1000.0, deg2rad(inc_angle), 0.0)
 
         # Calculate the zero turbulence line profile (set Eddington ratio to 0.0 for a truly thin disc)
-        flux_zero = calculate_zero_turbulence_line_profile(m, x, ShakuraSunyaev(m, eddington_ratio=0.3), bins, q)
+        flux_zero = calculate_zero_turbulence_line_profile(m, x, ShakuraSunyaev(m, eddington_ratio=0.3), bins, q, emissivity_model)
 
         # Calculate the turbulent line profiles for different Eddington ratios
-        flux_turbulent_05 = calculate_turbulent_line_profile(m, x, ShakuraSunyaev(m, eddington_ratio=0.5), bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach)
-        flux_turbulent_1 = calculate_turbulent_line_profile(m, x, ShakuraSunyaev(m, eddington_ratio=1.0), bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach)
+        flux_turbulent_05 = calculate_turbulent_line_profile(m, x, ShakuraSunyaev(m, eddington_ratio=0.5), bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach, emissivity_model)
+        flux_turbulent_1 = calculate_turbulent_line_profile(m, x, ShakuraSunyaev(m, eddington_ratio=1.0), bins, correlation_length, q, a, M, L, L_edd, r_ms, epsilon, mach, emissivity_model)
 
         plot(
             bins, flux_zero,
@@ -112,7 +127,9 @@ for q in q_values
         )
 
         annot_text_i = L"i = %$inc_angle^{\circ}"
-        annot_text_q = L"q = %$q"
+        if emissivity_model == "powerlaw"
+            annot_text_q = L"q = %$q"
+        end
 
         annot_x = 1.4
 
@@ -123,22 +140,26 @@ for q in q_values
         annot_y_q = annot_y_i - (1.1*offset)    
 
         annotate!(annot_x, annot_y_i, text(annot_text_i, 11, :black, :right))
-        annotate!(annot_x, annot_y_q, text(annot_text_q, 11, :black, :right))
-
+        if emissivity_model == "powerlaw"
+            annotate!(annot_x, annot_y_q, text(annot_text_q, 11, :black, :right))
+        end
 
         # Display the plot for this (q, i) combination
         display(current())
         
+        
         # Save plot for this (q, i) combination
-        output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles"
-        mkpath(output_dir)
+        #output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles"
+        #mkpath(output_dir)
 
         # Generate filename with inclination angle, emissivity index, and Mach number
-        filename = joinpath(output_dir, "line_profile_i$(inc_angle)_q$(q)_M$(mach).png")
+        #filename = joinpath(output_dir, "line_profile_i$(inc_angle)_q$(q)_M$(mach).png")
 
         # Save the figure
-        savefig(filename)
-        println("Saved figure to: $filename")
+        #savefig(filename)
+        #println("Saved figure to: $filename")
+
+        
 
     end
 end
