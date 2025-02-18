@@ -8,7 +8,7 @@ include("velocity-structures-klb.jl")
 include("pariev-bromley-equations-klb.jl")
 
 # Choose turbulence model: "perlin" or "fbm"
-turbulence_model = "perlin" # "perlin" or "fbm"
+turbulence_model = "fbm" # "perlin" or "fbm"
 
 # --- Turbulent Shakura-Sunyaev Disc Line Profile ---
 function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
@@ -27,7 +27,7 @@ end
 function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
     if turbulence_model == "perlin"
         return turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
-    elseif turbulence model == "fbm"
+    elseif turbulence_model == "fbm"
         return return turb_fbm(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
     end
 end
@@ -160,7 +160,7 @@ if emissivity_model == "powerlaw"
             
             
             # Save plot for this (q, i) combination
-            output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles\lamppost"
+            output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\$turbulence_model-line-profiles\lamppost"
             mkpath(output_dir)
 
             # Generate filename with inclination angle, emissivity index, and Mach number
@@ -228,7 +228,7 @@ elseif emissivity_model == "lamppost"
         
         
         # Save plot for this i value
-        output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\perlin-line-profiles\lamppost"
+        output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\$turbulence_model-line-profiles\lamppost"
         mkpath(output_dir)
 
         # Generate filename with inclination angle, emissivity index, and Mach number
