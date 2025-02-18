@@ -7,7 +7,7 @@ using Plots, Gradus, LaTeXStrings
 include("velocity-structures-klb.jl")
 include("pariev-bromley-equations-klb.jl")
 
-# Choose turbulence model: "perlin" or "fbm"
+# Choose turbulence model: "perlin" or "fbm" 
 turbulence_model = "fbm" # "perlin" or "fbm"
 
 # --- Turbulent Shakura-Sunyaev Disc Line Profile ---
@@ -33,11 +33,11 @@ function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms,
 end
 
 # Function to calculate emissivity based on chosen model
-function get_emissivity_function(m, d, q, emissivity_model)
+function get_emissivity_function(m, d, q, height, emissivity_model)
     if emissivity_model == "powerlaw"
         return r -> r^(-q)
     elseif emissivity_model == "lamppost"
-        corona = LampPostModel(h = 10.0)  # Define lamp-post corona
+        corona = LampPostModel(h = height)  # Define lamp-post corona
         return emissivity_profile(m, d, corona)
     else
         error("Invalid emissivity model. Choose 'powerlaw' or 'lamppost'.")
@@ -48,7 +48,7 @@ function calculate_turbulent_line_profile(m, x, d, bins, correlation_length, q, 
     redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
     pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
     plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius)
-    ε = get_emissivity_function(m, d, q, emissivity_model)
+    ε = get_emissivity_function(m, d, q, height, emissivity_model)
     if emissivity_model == "powerlaw"
         _, f = lineprofile(bins, ε, m, x, d, redshift_pf = pf, method = BinningMethod(), plane = plane)
     elseif emissivity_model == "lamppost"
@@ -60,7 +60,7 @@ end
 
 # --- Zero Turbulence Shakura-Sunyaev Disc Line Profile ---
 function calculate_zero_turbulence_line_profile(m, x, d, bins, q, emissivity_model)
-    ε = get_emissivity_function(m, d, q, emissivity_model)
+    ε = get_emissivity_function(m, d, q, height, emissivity_model)
     if emissivity_model == "powerlaw"
         _, f = lineprofile(bins, ε, m, x, d, method = BinningMethod(), callback = domain_upper_hemisphere(), verbose = true)
     elseif emissivity_model == "lamppost"
@@ -94,6 +94,7 @@ L_edd = L_eddington(M)  # Compute Eddington luminosity
 r_ms = Gradus.isco(m)  # Compute ISCO
 epsilon = 0.1  # Efficiency factor
 mach = 1 # Mach number
+height = 10.0  # Height of the lamppost corona
 
 # Define the Shakura-Sunyaev disc with Eddington ratio 0.3, 0.5, and 1.0
 d_03 = ShakuraSunyaev(m, eddington_ratio=0.3)
@@ -160,7 +161,7 @@ if emissivity_model == "powerlaw"
             
             
             # Save plot for this (q, i) combination
-            output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\$turbulence_model-line-profiles\lamppost"
+            output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\line-profiles\\$(turbulence_model)-line-profiles\\powerlaw"
             mkpath(output_dir)
 
             # Generate filename with inclination angle, emissivity index, and Mach number
@@ -228,11 +229,11 @@ elseif emissivity_model == "lamppost"
         
         
         # Save plot for this i value
-        output_dir = raw"C:\Users\Kate\project\TurbulentDisc\klb_plots\line-profiles\$turbulence_model-line-profiles\lamppost"
+        output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\line-profiles\\$(turbulence_model)-line-profiles\\lamppost"
         mkpath(output_dir)
 
         # Generate filename with inclination angle, emissivity index, and Mach number
-        filename = joinpath(output_dir, "line_profile_$(emissivity_model)_i$(inc_angle)_M$(mach).png")
+        filename = joinpath(output_dir, "line_profile_$(emissivity_model)_h$(height)_i$(inc_angle)_M$(mach).png")
 
         # Save the figure
         savefig(filename)
