@@ -6,7 +6,7 @@ include("velocity-structures-klb.jl")
 include("pariev-bromley-equations-klb.jl")
 
 # Define correlation length
-correlation_length = 0.2
+correlation_length = 1
 
 turbulence_model = "fbm" # "perlin" or "fbm"
 
@@ -84,23 +84,35 @@ for q in q_values
                 pf = pf,
             )
 
+
             # Plot ray trace geodesic image
-            heatmap(α, β, img, aspect_ratio = 1)
+            heatmap(α, β, img, aspect_ratio = 1, xlabel="α", ylabel="β", title="Redshift Image: i=$(inc_angle)°, q=$(q), L_Edd=$(edd_ratio)")
+
+            # Save geodesic image
+            output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\ray-traced\\$(turbulence_model)-ray-traced\\powerlaw"
+            mkpath(output_dir)
+            filename = joinpath(output_dir, "ray_traced_powerlaw_i$(inc_angle)_q$(q)_Ledd$(edd_ratio)_M$(mach).png")
+            savefig(filename)
+            println("Saved figure to: $filename")
 
             # Define emissivity function 
             ϵ(r) = r^(-q)
 
             # Create and plot line profile 
             bins = collect(range(0.0, 2.0, 200))
-            plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = 5 * d.outer_radius)
-            _, f = lineprofile(bins, ϵ, m, x, d, redshift_pf = pf, verbose = true, method = BinningMethod(), plane = plane)
+            plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius)
+            bins, f = lineprofile(bins, ϵ, m, x, d, redshift_pf = pf, verbose = true, method = BinningMethod(), plane = plane)
 
 
             # Set whatever is in the last bin to 0 as it's most likely a noise contribution
             f[end] = 0
 
             # Plot line profile
-            plot(bins, f, legend = false)
+            plot(bins, f, 
+                legend = false,
+                xlabel="Redshift",
+                ylabel="Flux (arbitrary units)",
+                title="Line Profile: i=$(inc_angle)°, q=$(q), L_Edd=$(edd_ratio)")
         end
     end
 end
