@@ -53,46 +53,54 @@ r_ms = Gradus.isco(m)  # Compute ISCO
 epsilon = 0.1  # Efficiency factor
 mach = 1  # Mach number
 
+# Define the Shakura-Sunyaev disc
+eddington_ratios = [0.3, 0.5, 1.0]
+discs = Dict(0.3 => ShakuraSunyaev(m, eddington_ratio=0.3),
+              0.5 => ShakuraSunyaev(m, eddington_ratio=0.5),
+              1.0 => ShakuraSunyaev(m, eddington_ratio=1.0))
+
 # Iterate over inclination angles and emissivity indices
 for q in q_values
     for inc_angle in inc_angles
-        x = SVector(0.0, 1000.0, deg2rad(inc_angle), 0.0)
-        d = ThinDisc(Gradus.isco(m), 50.0)
+        for edd_ratio in eddington_ratios
+            x = SVector(0.0, 1000.0, deg2rad(inc_angle), 0.0)
+            d = discs[edd_ratio]
 
-        # Compose our turbulent redshift function with a filter function to remove points outside of the ISCO
-        redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
-        pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
+            # Compose our turbulent redshift function with a filter function to remove points outside of the ISCO
+            redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
+            pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
 
-        # Render geodesics using the modified point function 
-        α, β, img = rendergeodesics(
-            m,
-            x,
-            d,
-            20_000.0,  # Maximum integration time
-            αlims = (-30, 30), 
-            βlims = (-20, 20),
-            image_width = 800,
-            image_height = 400,
-            verbose = true,
-            pf = pf,
-        )
+            # Render geodesics using the modified point function 
+            α, β, img = rendergeodesics(
+                m,
+                x,
+                d,
+                20_000.0,  # Maximum integration time
+                αlims = (-30, 30), 
+                βlims = (-20, 20),
+                image_width = 800,
+                image_height = 400,
+                verbose = true,
+                pf = pf,
+            )
 
-        # Plot ray trace geodesic image
-        heatmap(α, β, img, aspect_ratio = 1)
+            # Plot ray trace geodesic image
+            heatmap(α, β, img, aspect_ratio = 1)
 
-        # Define emissivity function 
-        ϵ(r) = r^(-q)
+            # Define emissivity function 
+            ϵ(r) = r^(-q)
 
-        # Create and plot line profile 
-        bins = collect(range(0.0, 2.0, 200))
-        plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = 5 * d.outer_radius)
-        _, f = lineprofile(bins, ϵ, m, x, d, redshift_pf = pf, verbose = true, method = BinningMethod(), plane = plane)
+            # Create and plot line profile 
+            bins = collect(range(0.0, 2.0, 200))
+            plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = 5 * d.outer_radius)
+            _, f = lineprofile(bins, ϵ, m, x, d, redshift_pf = pf, verbose = true, method = BinningMethod(), plane = plane)
 
 
-        # Set whatever is in the last bin to 0 as it's most likely a noise contribution
-        f[end] = 0
+            # Set whatever is in the last bin to 0 as it's most likely a noise contribution
+            f[end] = 0
 
-        # Plot line profile
-        plot(bins, f, legend = false)
+            # Plot line profile
+            plot(bins, f, legend = false)
+        end
     end
 end
