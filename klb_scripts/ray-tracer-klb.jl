@@ -6,9 +6,9 @@ include("velocity-structures-klb.jl")
 include("pariev-bromley-equations-klb.jl")
 
 # Define correlation length
-correlation_length = 1
+correlation_length = 10
 
-turbulence_model = "fbm" # "perlin" or "fbm"
+turbulence_model = "perlin" # "perlin" or "fbm"
 
 # Define inclination angles and emissivity indices
 inc_angles = [30, 60, 75]
@@ -34,8 +34,10 @@ end
 
 # Wrapper function to select appropriate turbulence model
 function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
-    if turbulence_model == "fbm"
-        return turb_fbm(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
+    if turbulence_model == "perlin"
+        return turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
+    elseif turbulence_model == "fbm"
+        return return turb_fbm(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
     end
 end
 
@@ -76,8 +78,8 @@ for q in q_values
                 x,
                 d,
                 20_000.0,  # Maximum integration time
-                αlims = (-6, 6), 
-                βlims = (-4, 4),
+                αlims = (-12, 12), 
+                βlims = (-8, 8),
                 image_width = 800,
                 image_height = 400,
                 verbose = true,
