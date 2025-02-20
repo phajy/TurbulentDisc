@@ -76,8 +76,8 @@ for q in q_values
                 x,
                 d,
                 20_000.0,  # Maximum integration time
-                αlims = (-30, 30), 
-                βlims = (-20, 20),
+                αlims = (-6, 6), 
+                βlims = (-4, 4),
                 image_width = 800,
                 image_height = 400,
                 verbose = true,
@@ -86,12 +86,13 @@ for q in q_values
 
 
             # Plot ray trace geodesic image
-            heatmap(α, β, img, aspect_ratio = 1, xlabel="α", ylabel="β", title="Redshift Image: i=$(inc_angle)°, q=$(q), L_Edd=$(edd_ratio)")
+            heatmap(α, β, img, aspect_ratio = 1, xlabel="α", ylabel="β", title="Redshift Image: i=$(inc_angle)°, q=$(q), L_Edd=$(edd_ratio), corr=$(correlation_length)")
 
             # Save geodesic image
-            output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\ray-traced\\$(turbulence_model)-ray-traced\\powerlaw"
+            #output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\ray-traced\\$(turbulence_model)-ray-traced\\powerlaw"
+            output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\ray-traced\\$(turbulence_model)-ray-traced\\powerlaw\\zoomed-in"
             mkpath(output_dir)
-            filename = joinpath(output_dir, "ray_traced_powerlaw_i$(inc_angle)_q$(q)_Ledd$(edd_ratio)_M$(mach).png")
+            filename = joinpath(output_dir, "ray_traced_powerlaw_i$(inc_angle)_q$(q)_Ledd$(edd_ratio)_M$(mach)_corr$(correlation_length).png")
             savefig(filename)
             println("Saved figure to: $filename")
 
