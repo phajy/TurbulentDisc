@@ -1,5 +1,5 @@
 # import functions
-include("VelocityStructures.jl")
+include("TurbulenceMaps.jl")
 
 m = KerrMetric(1.0, 0.998)
 
@@ -12,8 +12,14 @@ radii = logrange(Gradus.isco(m), 1000, 200)
 
 keplerian_velocities = Gradus.CircularOrbits.fourvelocity.(m, radii)
 
+a=0.998
+M=1.0
+lum=7.2e42
+correlation_length=1
+mach=1
+
 # then apply however your velocity function works to the keplerian_velocities
-turbulent_velocities = turbulence_perlin.(m, radii, θ)
+turbulent_velocities = turbulence_fbmfractal(m, radii, θ, a, M, lum, correlation_length, mach)
 
 # --------------------------------------------------------------------- #
 
@@ -24,6 +30,14 @@ turbulent_velocities = turbulence_perlin.(m, radii, θ)
 # 2 - radial (r)
 # 3 - poloidal (θ)
 # 4 - azimuthal (ϕ)
+
+
+
+"""
+========================================================
+# This is a 1D plot of azimuthal velocity against radius
+========================================================
+
 begin
     plot(
         radii,
@@ -37,6 +51,7 @@ begin
     plot!(radii, [i[4] for i in turbulent_velocities], label = "turbulent")
 end
 
+
 begin
     keplerian_field =
         [log10(i[4]) for (i, r) in zip(keplerian_velocities, radii), angle in θ]
@@ -47,10 +62,12 @@ begin
     turbulent_field = [log10(turbulence_perlin(m, r, 0.0)[4]) for r in radii, angle in θ]
     heatmap(θ, radii, turbulent_field, projection = :polar, title = "turbulent")
 end
+"""
+
 
 begin
     comparison_map = [
-        (turbulence_perlin(m, r, 0.0)[4] - v[4]) / v[4] for
+        (turbulence_fbmfractal(m, r, 0.0, 0.998, 1.0, 7.2e42, 1, 1)[4] - v[4]) / v[4] for
         (v, r) in zip(keplerian_velocities, radii), angle in θ
     ]
     heatmap(
