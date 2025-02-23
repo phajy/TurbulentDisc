@@ -12,14 +12,33 @@ radii = logrange(Gradus.isco(m), 1000, 200)
 
 keplerian_velocities = Gradus.CircularOrbits.fourvelocity.(m, radii)
 
-a=0.998
-M=1.0
-lum=7.2e42
-correlation_length=1
-mach=1
+a = 0.998
+M = 1.0
+lum = 7.2e42
+correlation_length = 1
+mach = 1
 
-# then apply however your velocity function works to the keplerian_velocities
-turbulent_velocities = turbulence_fbmfractal(m, radii, θ, a, M, lum, correlation_length, mach)
+# Calculate turbulent velocities for each combination of r and θ
+turbulent_velocities = [
+    [turbulence_fbmfractal(m, radii[i], θ[j], a, M, lum, correlation_length, mach) for j in 1:length(θ)]
+    for i in 1:length(radii)
+]
+
+# Calculate the difference between turbulent and keplerian velocities
+velocity_differences = [
+    [turbulent_velocities[i][j] - keplerian_velocities[i] for j in 1:length(θ)]
+    for i in 1:length(radii)
+]
+
+# Calculate magnitudes of the differences (excluding the first component)
+difference_mags = [
+    [sqrt(sum(x -> x^2, velocity_differences[i][j][2:4])) for j in 1:length(θ)]
+    for i in 1:length(radii)
+]
+
+print(keplerian_velocities[1][4])
+print(turbulent_velocities[1][1][4])
+turbulence_fbmfractal(m, radii[20], θ[20], a, M, lum, correlation_length, mach)
 
 # --------------------------------------------------------------------- #
 
@@ -31,8 +50,6 @@ turbulent_velocities = turbulence_fbmfractal(m, radii, θ, a, M, lum, correlatio
 # 3 - poloidal (θ)
 # 4 - azimuthal (ϕ)
 
-
-
 """
 ========================================================
 # This is a 1D plot of azimuthal velocity against radius
@@ -41,40 +58,36 @@ turbulent_velocities = turbulence_fbmfractal(m, radii, θ, a, M, lum, correlatio
 begin
     plot(
         radii,
-        [i[4] for i in keplerian_velocities],
+        [sqrt(sum(x -> x^2, v)) for v in keplerian_velocities],
         xlabel = "r",
-        ylabel = "vᵩ",
+        ylabel = "Velocity Magnitude",
         xscale = :log10,
         yscale = :log10,
         label = "keplerian",
     )
-    plot!(radii, [i[4] for i in turbulent_velocities], label = "turbulent")
+    plot!(radii, [sqrt(sum(x -> x^2, turbulent_velocities[i][1])) for i in 1:length(radii)], label = "turbulent")
 end
 
 
 begin
     keplerian_field =
-        [log10(i[4]) for (i, r) in zip(keplerian_velocities, radii), angle in θ]
+        [sqrt(sum(x -> x^2, v)) for v in keplerian_velocities, angle in θ]
     heatmap(θ, radii, keplerian_field, projection = :polar, title = "keplerian")
 end
 
 begin
-    turbulent_field = [log10(turbulence_perlin(m, r, 0.0)[4]) for r in radii, angle in θ]
+    turbulent_field = [sqrt(sum(x -> x^2, turbulent_velocities[i][j])) for i in 1:length(radii), j in 1:length(θ)]
     heatmap(θ, radii, turbulent_field, projection = :polar, title = "turbulent")
 end
 """
 
-
 begin
-    comparison_map = [
-        (turbulence_fbmfractal(m, r, 0.0, 0.998, 1.0, 7.2e42, 1, 1)[4] - v[4]) / v[4] for
-        (v, r) in zip(keplerian_velocities, radii), angle in θ
-    ]
+    difference_field = [difference_mags[i][j] for i in 1:length(radii), j in 1:length(θ)]
     heatmap(
         θ,
         radii,
-        comparison_map,
+        difference_field,
         projection = :polar,
-        title = "(Turbulent - Keplerian) / Keplerian",
+        title = "Magnitude of Velocity Difference",
     )
 end
