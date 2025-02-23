@@ -2,7 +2,7 @@
 # and inclination angles (emissivities and inclinations angle ranges as of Pariev & Bromley 1998)
 
 # Import libraries
-using Plots, Gradus
+using Plots, Gradus, Measures
 include("TurbulenceMaps.jl")
 include("SoundSpeed.jl")
 x = SVector(0.0, 1_000.0, deg2rad(40), 0.0)
@@ -56,59 +56,26 @@ function calculate_line_profile(
 
         if typeof(ε) <: Gradus.RadialDiscProfile
 
-            if typeof(d) <: Gradus.ThinDisc
-
-                _, f = lineprofile(
+            _, f = lineprofile(
                 m,
                 x,
                 d,
                 ε;
                 bins = bins,
-                verbose = true,
+                verbose = true
             )
-
-            else
-
-                _, f = lineprofile(
-                m,
-                x,
-                d,
-                ε;
-                bins = bins,
-                verbose = true,
-                beta1 = 2.0
-            )
-
-            end
 
         else
 
-            if typeof(d) <: Gradus.ThinDisc
-
-                _, f = lineprofile(
+            _, f = lineprofile(
                 bins,
                 ε,
                 m,
                 x,
                 d;
                 method = TransferFunctionMethod(),
-                verbose = true,
+                verbose = true
             )
-
-            else
-
-                _, f = lineprofile(
-                bins,
-                ε,
-                m,
-                x,
-                d;
-                method = TransferFunctionMethod(),
-                verbose = true,
-                beta1 = 2.0
-            )
-
-            end
 
         end
 
@@ -120,9 +87,7 @@ function calculate_line_profile(
 
         if typeof(ε) <: Gradus.RadialDiscProfile
 
-            if typeof(d) <: Gradus.ThinDisc
-
-                _, f = lineprofile(
+            _, f = lineprofile(
                 m,
                 x,
                 d,
@@ -130,30 +95,11 @@ function calculate_line_profile(
                 method = BinningMethod(),
                 redshift_pf = pf,
                 bins = bins,
-                verbose = true,
-            )
-
-            else
-
-                _, f = lineprofile(
-                m,
-                x,
-                d,
-                ε;
-                method = BinningMethod(),
-                redshift_pf = pf,
-                bins = bins,
-                verbose = true,
-                beta1 = 2.0
-            )
-
-            end
+                verbose = true)
 
         else
 
-            if typeof(d) <: Gradus.ThinDisc
-
-                _, f = lineprofile(
+            _, f = lineprofile(
                 bins,
                 ε,
                 m,
@@ -161,24 +107,7 @@ function calculate_line_profile(
                 d;
                 method = BinningMethod(),
                 redshift_pf = pf,
-                verbose = true,
-            )
-
-            else
-
-                _, f = lineprofile(
-                bins,
-                ε,
-                m,
-                x,
-                d;
-                method = BinningMethod(),
-                redshift_pf = pf,
-                verbose = true,
-                beta1 = 2.0
-            )
-
-            end
+                verbose = true)
 
         end
 
@@ -266,29 +195,30 @@ plt = plot(
     ylabel = "Flux (Arbitrary Units)",
     title = "Iron Kα Line Profile",
     legend = :topleft,
+    left_margin = [5mm 0mm],
+    right_margin = [5mm 0mm],
+    top_margin = [5mm 0mm],
+    bottom_margin = [5mm 0mm]
 )
-
 
 a = 0.998
 M = 1.0
 lum = 7.2e42
 lum_edd = LumEdd(M)
-ratio = 0.3
 m = KerrMetric(M, a)
 inner_radius = Gradus.isco(m)
 outer_radius = 15.0
-d = Gradus.ShakuraSunyaev(m, eddington_ratio = ratio)
-bins = collect(range(0.1, 1.5, 200))
+d = Gradus.ThinDisc(inner_radius, outer_radius)
+bins = collect(range(0.1, 2.0, 200))
 x = SVector(0.0, 1000.0, deg2rad(40), 0.0)
 turbulenceOn = false
-correlation_length = 1
 mach = 1
+correlation_length=1
 q=3
 ε(r) = r^(-q)
 
-f = calculate_line_profile(m, x, d, a, M, lum, bins, ε)
-plot!(plt, bins, f, label = "Eddington Ratio = $ratio")
-
+f = calculate_line_profile(m, x, d, a, M, lum, bins, ε, turbulenceOn, correlation_length, mach)
+plot!(plt, bins, f)
 
 display(plt)
-#savefig(plt, "Other/Figs/LeverTweaking/EddingtonRatio.png")
+#savefig(plt, "Other/Figs/LeverTweaking/RegularThinDiscLP.png")
