@@ -8,7 +8,7 @@ include("velocity-structures-klb.jl")
 include("pariev-bromley-equations-klb.jl")
 
 # Choose turbulence model: "perlin" or "fbm" 
-turbulence_model = "perlin" # Options: "perlin" or "fbm"
+turbulence_model = "fbm" # Options: "perlin" or "fbm"
 
 # Choose emissivity model: "powerlaw" or "lamppost"
 emissivity_model = "powerlaw"  # Options: "powerlaw" or "lamppost" 
@@ -70,7 +70,7 @@ end
 # Parameters
 m = KerrMetric(1.0, 0.998)
 inner_radius = Gradus.isco(m)
-outer_radius = 400.0
+outer_radius = 15.0
 bins = collect(range(0.1, 1.5, 200))
 correlation_length = 1.0
 L_eddington(M) = 1.2e46 * (M/1e8)
