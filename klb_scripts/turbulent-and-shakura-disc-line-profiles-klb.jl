@@ -77,7 +77,7 @@ emissivity_model = "lamppost"  # "powerlaw" or "lamppost"
 # Parameters for both models
 m = KerrMetric(1.0, 0.998)
 inner_radius = Gradus.isco(m)
-outer_radius = 400.0
+outer_radius = 15.0
 bins = collect(range(0.1, 1.5, 200))
 correlation_length = 1  # Correlation length for turbulence
 L_eddington(M) = 1.2e46 * (M/1e8) # Eddington luminosity
@@ -96,8 +96,8 @@ epsilon = 0.1  # Efficiency factor
 mach = 1 # Mach number
 height = 10.0  # Height of the lamppost corona
 
-# Define the Shakura-Sunyaev disc with Eddington ratio 0.3, 0.5, and 1.0
-d_03 = ShakuraSunyaev(m, eddington_ratio=0.3)
+# Define the thin disc and Shakura-Sunyaev (thick) disc with Eddington ratio 0.5, and 1.0
+d_03 = Gradus.ThinDisc(inner_radius, outer_radius)
 d_05 = ShakuraSunyaev(m, eddington_ratio=0.5)
 d_1 = ShakuraSunyaev(m, eddington_ratio=1.0)
 
