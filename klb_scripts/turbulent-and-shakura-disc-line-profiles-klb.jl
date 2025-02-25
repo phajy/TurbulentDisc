@@ -161,7 +161,7 @@ if emissivity_model == "powerlaw"
             
             
             # Save plot for this (q, i) combination
-            output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\line-profiles\\$(turbulence_model)-line-profiles\\powerlaw"
+            output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\line-profiles\\$(turbulence_model)-line-profiles-SSD\\powerlaw"
             mkpath(output_dir)
 
             # Generate filename with inclination angle, emissivity index, and Mach number
@@ -229,7 +229,7 @@ elseif emissivity_model == "lamppost"
         
         
         # Save plot for this i value
-        output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\line-profiles\\$(turbulence_model)-line-profiles\\lamppost"
+        output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\line-profiles\\$(turbulence_model)-line-profiles-SSD\\lamppost"
         mkpath(output_dir)
 
         # Generate filename with inclination angle, emissivity index, and Mach number
