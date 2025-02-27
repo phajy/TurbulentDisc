@@ -2,7 +2,7 @@
 # and inclination angles (emissivities and inclinations angle ranges as of Pariev & Bromley 1998)
 
 # Import libraries
-using Plots, Gradus
+using Plots, Gradus, Measures
 include("TurbulenceMaps.jl")
 include("SoundSpeed.jl")
 x = SVector(0.0, 1_000.0, deg2rad(40), 0.0)
@@ -195,28 +195,30 @@ plt = plot(
     ylabel = "Flux (Arbitrary Units)",
     title = "Iron Kα Line Profile",
     legend = :topleft,
+    left_margin = [5mm 0mm],
+    right_margin = [5mm 0mm],
+    top_margin = [5mm 0mm],
+    bottom_margin = [5mm 0mm]
 )
 
-for correlation_length in [0.5, 1.0, 2.0, 5.0, 10.0, 50.0, 100.0]
+a = 0.998
+M = 1.0
+lum = 7.2e42
+lum_edd = LumEdd(M)
+m = KerrMetric(M, a)
+inner_radius = Gradus.isco(m)
+outer_radius = 15.0
+d = Gradus.ThinDisc(inner_radius, outer_radius)
+bins = collect(range(0.1, 1.5, 200))
+x = SVector(0.0, 1000.0, deg2rad(40), 0.0)
+turbulenceOn = false
+mach = 300
+correlation_length=100
+q=3
+ε(r) = r^(-q)
 
-    a = 0.998
-    M = 1.0
-    lum = 7.2e42
-    lum_edd = LumEdd(M)
-    m = KerrMetric(1.0, a)
-    inner_radius = Gradus.isco(m)
-    outer_radius = 15.0
-    d = Gradus.ShakuraSunyaev(m, eddington_ratio = 0.3)
-    bins = collect(range(0.1, 1.5, 200))
-    x = SVector(0.0, 1000.0, deg2rad(40), 0.0)
-    turbulenceOn = true
-    mach = 1
-    q=3
-    ε(r) = r^(-q)
-
-    f = calculate_line_profile(m, x, d, a, 1.0, lum, bins, ε, turbulenceOn, correlation_length, mach)
-    plot!(plt, bins, f, label = "Correlation Length = $correlation_length")
-
-end
+f = calculate_line_profile(m, x, d, a, M, lum, bins, ε, turbulenceOn, correlation_length, mach)
+plot!(plt, bins, f, ticks=false, legend = false, color=:red)
 
 display(plt)
+savefig(plt, "Fig")

@@ -36,10 +36,6 @@ difference_mags = [
     for i in 1:length(radii)
 ]
 
-print(keplerian_velocities[1][4])
-print(turbulent_velocities[1][1][4])
-turbulence_fbmfractal(m, radii[20], θ[20], a, M, lum, correlation_length, mach)
-
 # --------------------------------------------------------------------- #
 
 # some visualisation methods (use the ones that make the most sense to you)

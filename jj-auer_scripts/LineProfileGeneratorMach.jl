@@ -197,26 +197,24 @@ plt = plot(
     legend = :topleft,
 )
 
-for mach in [0.5, 1.0, 10.0, 100.0, 300.0, 500.0, 1000.0]
 
-    a = 0.998
-    M = 1.0
-    lum = 7.2e42
-    lum_edd = LumEdd(M)
-    m = KerrMetric(1.0, a)
-    inner_radius = Gradus.isco(m)
-    outer_radius = 15.0
-    d = Gradus.ShakuraSunyaev(m, eddington_ratio = 0.3)
-    bins = collect(range(0.1, 1.5, 200))
-    x = SVector(0.0, 1000.0, deg2rad(40), 0.0)
-    turbulenceOn = true
-    correlation_length = 1
-    q=3
-    ε(r) = r^(-q)
+a = 0.998
+M = 1.0
+lum = 7.2e42
+lum_edd = LumEdd(M)
+m = KerrMetric(M, a)
+inner_radius = Gradus.isco(m)
+outer_radius = 15.0
+d = Gradus.ShakuraSunyaev(m, eddington_ratio = 0.3)
+bins = collect(range(0.1, 1.5, 200))
+x = SVector(0.0, 1000.0, deg2rad(40), 0.0)
+turbulenceOn = true
+correlation_length = 100
+mach = 100
+q=3
+ε(r) = r^(-q)
 
-    f = calculate_line_profile(m, x, d, a, 1.0, lum, bins, ε, turbulenceOn, correlation_length, mach)
-    plot!(plt, bins, f, label = "Mach Number = $mach")
-
-end
+f = calculate_line_profile(m, x, d, a, M, lum, bins, ε, turbulenceOn, correlation_length, mach)
+plot!(plt, bins, f, label = "Mach Number = $mach")
 
 display(plt)
