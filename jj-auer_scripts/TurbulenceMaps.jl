@@ -57,7 +57,6 @@ function turbulence_perlin(m, r, theta, a, M, lum, correlation_length, mach)
             
 end
 
-
 function turbulence_fbmfractal(m, r, theta, a, M, lum, correlation_length, mach; fractal_noise_r = fbm_fractal_2d(seed=1), fractal_noise_p = fbm_fractal_2d(seed=2), fractal_noise_a = fbm_fractal_2d(seed=3))
 
     intensity=1
