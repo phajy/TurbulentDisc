@@ -211,14 +211,13 @@ outer_radius = 15.0
 d = Gradus.ThinDisc(inner_radius, outer_radius)
 bins = collect(range(0.1, 2.0, 200))
 x = SVector(0.0, 1000.0, deg2rad(40), 0.0)
-turbulenceOn = false
-mach = 1
+turbulenceOn = true
+mach = 1000
 correlation_length=1
-q=3
-ε(r) = r^(-q)
 
-f = calculate_line_profile(m, x, d, a, M, lum, bins, ε, turbulenceOn, correlation_length, mach)
-plot!(plt, bins, f)
+
+f = calculate_line_profile(m, x, d, a, M, lum, bins, r -> r^-3, turbulenceOn, correlation_length, mach)
+plot(plt, bins, f)
 
 display(plt)
 #savefig(plt, "Other/Figs/LeverTweaking/RegularThinDiscLP.png")
