@@ -1,11 +1,12 @@
 # import functions
+using Gradus, Plots
 include("TurbulenceMaps.jl")
 
 m = KerrMetric(1.0, 0.998)
 
 # log range from the innermost stable circular orbit (inner edge of the
 # accretion disc) out to some arbitrary radius
-radii = logrange(Gradus.isco(m), 1000, 200)
+radii = logrange(Gradus.isco(m), 5, 200)
 
 # if you need it, these will be the azimuthal angles to each "radial" bin
 θ = collect(range(0, 2π, 200))
@@ -16,11 +17,16 @@ a = 0.998
 M = 1.0
 lum = 7.2e42
 correlation_length = 1
-mach = 1
+mach = 1000
+
+
+function velocity_wrapper(m, r, phis, a, M, lum, correlation_length, mach)
+    return turbulence_perlin(m, r, phis, a, M, lum, correlation_length, mach)
+end
 
 # Calculate turbulent velocities for each combination of r and θ
 turbulent_velocities = [
-    [turbulence_fbmfractal(m, radii[i], θ[j], a, M, lum, correlation_length, mach) for j in 1:length(θ)]
+    [velocity_wrapper(m, radii[i], θ[j], a, M, lum, correlation_length, mach) for j in 1:length(θ)]
     for i in 1:length(radii)
 ]
 
@@ -35,6 +41,32 @@ difference_mags = [
     [sqrt(sum(x -> x^2, velocity_differences[i][j][2:4])) for j in 1:length(θ)]
     for i in 1:length(radii)
 ]
+
+keplerian_mags = [
+    sqrt(sum(x -> x^2, keplerian_velocities[i][2:4]))
+    for i in 1:length(radii)
+]
+
+difference_fracs = [
+    [difference_mags[i][j] / keplerian_mags[i] for j in 1:length(θ)]
+    for i in 1:length(radii)
+]
+
+# Find the minimum and maximum finite values in the nested array
+min_val = minimum(filter(isfinite, collect(Iterators.flatten(difference_fracs))))
+max_val = maximum(filter(isfinite, collect(Iterators.flatten(difference_fracs))))
+
+for i in 1:length(radii)
+    for j in 1:length(θ)
+        if difference_fracs[i][j] == -Inf
+            difference_fracs[i][j] = 2*min_val
+        elseif difference_fracs[i][j] == Inf
+            difference_fracs[i][j] = 2*max_val
+        end
+    end
+end
+
+difference_field = [100*difference_fracs[i][j] for i in 1:length(radii), j in 1:length(θ)]
 
 # --------------------------------------------------------------------- #
 
@@ -77,13 +109,19 @@ begin
 end
 """
 
+# Define a custom color gradient with a logarithmic scale
+
+
 begin
-    difference_field = [difference_mags[i][j] for i in 1:length(radii), j in 1:length(θ)]
-    heatmap(
+    plt = heatmap(
         θ,
         radii,
         difference_field,
         projection = :polar,
-        title = "Magnitude of Velocity Difference",
+        title = "Magnitude of Velocity Difference", 
+        colorbar_title = "Change in velocity compared to Keplerian (%)",
+        grid = true,
+        yticks = false,
+        
     )
 end

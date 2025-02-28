@@ -165,6 +165,6 @@ function RadialSpeed(m, r, a, alpha, M, lum)
     C(r_star, a_star, M)^(-1/2) *
     D(r_star, a_star, M)^(-1/2) *
     E(r_star, a_star, M)^(-1) *
-    Q(r, a, M)
+    Q(r, a, M) * 3e8
 
 end

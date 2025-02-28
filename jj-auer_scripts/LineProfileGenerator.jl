@@ -207,17 +207,16 @@ lum = 7.2e42
 lum_edd = LumEdd(M)
 m = KerrMetric(M, a)
 inner_radius = Gradus.isco(m)
-outer_radius = 15.0
+outer_radius = 200.0
 d = Gradus.ThinDisc(inner_radius, outer_radius)
 bins = collect(range(0.1, 1.5, 200))
-x = SVector(0.0, 1000.0, deg2rad(40), 0.0)
+x = SVector(0.0, 1000.0, deg2rad(75), 0.0)
 turbulenceOn = true
-mach = 1000
+mach = 100
 correlation_length=1
 
-
 f = calculate_line_profile(m, x, d, a, M, lum, bins, r -> r^-3, turbulenceOn, correlation_length, mach)
-plot(plt, bins, f)
+plot!(plt, bins, f, label="Turbulence On - incl. 75°")
 
 display(plt)
-savefig(plt, "Other/Figs/LeverTweaking/BogStandardLP.pdf")
+#savefig(plt, "Other/Figs/LeverTweaking/BogStandardLP.pdf")

@@ -34,10 +34,7 @@ function turbulence_random(m, r, correlation_length)
     v
 end
 
-
-perlin_noise = perlin_2d(seed=1)
-
-function turbulence_perlin(m, r, theta, a, M, lum, correlation_length, mach)
+function turbulence_perlin(m, r, theta, a, M, lum, correlation_length, mach; noise_r = perlin_2d(seed=1), noise_p = perlin_2d(seed=2), noise_a = perlin_2d(seed=3))
 
     intensity=1
     f = inv(correlation_length)
@@ -49,31 +46,44 @@ function turbulence_perlin(m, r, theta, a, M, lum, correlation_length, mach)
     y = r * sin(theta)
     
     # Generate Perlin noise based on the Cartesian coordinates
-    noise_val = intensity*mach*c(m, r, a, M, lum)*sample(perlin_noise, f*x, f*y)
-
-
-    vt = SVector(0, noise_val, 0, 0)
-    v = keplerian + vt
-            
-end
-
-function turbulence_fbmfractal(m, r, theta, a, M, lum, correlation_length, mach; fractal_noise_r = fbm_fractal_2d(seed=1), fractal_noise_p = fbm_fractal_2d(seed=2), fractal_noise_a = fbm_fractal_2d(seed=3))
-
-    intensity=1
-    f = inv(correlation_length)
-
-    keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
-
-    # Convert polar to Cartesian coordinates
-    x = r * cos(theta)
-    y = r * sin(theta)
-    
-    # Generate Perlin noise based on the Cartesian coordinates
-    noise_val_r = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(fractal_noise_r, f*x, f*y)
-    noise_val_p = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(fractal_noise_r, f*x, f*y)
-    noise_val_a = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(fractal_noise_r, f*x, f*y)
+    noise_val_r = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(noise_r, f*x, f*y)
+    noise_val_p = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(noise_p, f*x, f*y)
+    noise_val_a = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(noise_a, f*x, f*y)
 
     vt = SVector(0, noise_val_r, noise_val_p, noise_val_a)
     v = keplerian + vt
+
+    # Ensure velocity constraint
+    x = SVector(0.0, r, π/2, 0.0)
+    Gradus.constrain_all(m, x, v, 1.0)
+
+    return v
+            
+end
+
+function turbulence_fbmfractal(m, r, theta, a, M, lum, correlation_length, mach; noise_r = fbm_fractal_2d(seed=1), noise_p = fbm_fractal_2d(seed=2), noise_a = fbm_fractal_2d(seed=3))
+
+    intensity=1
+    f = inv(correlation_length)
+
+    keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
+
+    # Convert polar to Cartesian coordinates
+    x = r * cos(theta)
+    y = r * sin(theta)
+    
+    # Generate Perlin noise based on the Cartesian coordinates
+    noise_val_r = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(noise_r, f*x, f*y)
+    noise_val_p = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(noise_p, f*x, f*y)
+    noise_val_a = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(noise_a, f*x, f*y)
+
+    vt = SVector(0, noise_val_r, noise_val_p, noise_val_a)
+    v = keplerian + vt
+
+    # Ensure velocity constraint
+    x = SVector(0.0, r, π/2, 0.0)
+    Gradus.constrain_all(m, x, v, 1.0)
+
+    return v
             
 end
