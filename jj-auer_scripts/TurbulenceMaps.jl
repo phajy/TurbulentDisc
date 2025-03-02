@@ -34,9 +34,8 @@ function turbulence_random(m, r, correlation_length)
     v
 end
 
-function turbulence_perlin(m, r, theta, a, M, lum, correlation_length, mach; noise_r = perlin_2d(seed=1), noise_p = perlin_2d(seed=2), noise_a = perlin_2d(seed=3))
+function turbulence_perlin(m, r, theta, a, M, lum, correlation_length, mach; intensity = 1, noise_r = perlin_2d(seed=1), noise_p = perlin_2d(seed=2), noise_a = perlin_2d(seed=3))
 
-    intensity=1
     f = inv(correlation_length)
 
     keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
@@ -61,9 +60,8 @@ function turbulence_perlin(m, r, theta, a, M, lum, correlation_length, mach; noi
             
 end
 
-function turbulence_fbmfractal(m, r, theta, a, M, lum, correlation_length, mach; noise_r = fbm_fractal_2d(seed=1), noise_p = fbm_fractal_2d(seed=2), noise_a = fbm_fractal_2d(seed=3))
+function turbulence_fbm(m, r, theta, a, M, lum, correlation_length, mach; intensity = 1, noise_r = fbm_fractal_2d(seed=1), noise_p = fbm_fractal_2d(seed=2), noise_a = fbm_fractal_2d(seed=3))
 
-    intensity=1
     f = inv(correlation_length)
 
     keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
