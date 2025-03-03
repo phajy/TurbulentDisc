@@ -8,7 +8,7 @@ include("velocity-structures-klb.jl")
 include("pariev-bromley-equations-klb.jl")
 
 # Choose turbulence model: "perlin" or "fbm" 
-turbulence_model = "fbm" # "perlin" or "fbm"
+turbulence_model = "perlin" # "perlin" or "fbm"
 
 # --- Turbulent Shakura-Sunyaev Disc Line Profile ---
 function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
@@ -72,12 +72,12 @@ end
 # ---------- Plotting ----------
 
 # Choose emissivity model: "powerlaw" or "lamppost"
-emissivity_model = "lamppost"  # "powerlaw" or "lamppost" 
+emissivity_model = "powerlaw"  # "powerlaw" or "lamppost" 
 
 # Parameters for both models
 m = KerrMetric(1.0, 0.998)
 inner_radius = Gradus.isco(m)
-outer_radius = 15.0
+outer_radius = 400.0
 bins = collect(range(0.1, 1.5, 200))
 correlation_length = 1  # Correlation length for turbulence
 L_eddington(M) = 1.2e46 * (M/1e8) # Eddington luminosity
@@ -94,7 +94,7 @@ L_edd = L_eddington(M)  # Compute Eddington luminosity
 r_ms = Gradus.isco(m)  # Compute ISCO
 epsilon = 0.1  # Efficiency factor
 mach = 1 # Mach number
-height = 10.0  # Height of the lamppost corona
+height = 5.0  # Height of the lamppost corona
 
 # Define the thin disc and Shakura-Sunyaev (thick) disc with Eddington ratio 0.5, and 1.0
 d_03 = Gradus.ThinDisc(inner_radius, outer_radius)
@@ -161,11 +161,11 @@ if emissivity_model == "powerlaw"
             
             
             # Save plot for this (q, i) combination
-            output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\line-profiles\\$(turbulence_model)-line-profiles-SSD\\powerlaw"
+            output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\line-profiles-SSD\\$(turbulence_model)-line-profiles\\powerlaw"
             mkpath(output_dir)
 
             # Generate filename with inclination angle, emissivity index, and Mach number
-            filename = joinpath(output_dir, "line_profile_$(emissivity_model)_i$(inc_angle)_q$(q)_M$(mach).png")
+            filename = joinpath(output_dir, "line_profile_$(emissivity_model)_i$(inc_angle)_q$(q)_M$(mach).pdf")
 
             # Save the figure
             savefig(filename)
@@ -229,11 +229,11 @@ elseif emissivity_model == "lamppost"
         
         
         # Save plot for this i value
-        output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\line-profiles\\$(turbulence_model)-line-profiles-SSD\\lamppost"
+        output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\klb_plots\\line-profiles-SSD\\$(turbulence_model)-line-profiles\\lamppost"
         mkpath(output_dir)
 
         # Generate filename with inclination angle, emissivity index, and Mach number
-        filename = joinpath(output_dir, "line_profile_$(emissivity_model)_h$(height)_i$(inc_angle)_M$(mach).png")
+        filename = joinpath(output_dir, "line_profile_$(emissivity_model)_h$(height)_i$(inc_angle)_M$(mach).pdf")
 
         # Save the figure
         savefig(filename)
