@@ -431,38 +431,7 @@ end
 
 # Displaying the results
 begin
-    luxes = fluxes[4]
-    uxes = luxes[5]
-    pal = :seaborn_colorblind
-
-    plt = plot(
-        xlabel = L"ν/ν_e \ / \ \textrm{Unitless}",
-        ylabel = L"\textrm{Flux \ / \ Arbitrary Units}",
-        legend = :topleft,
-        left_margin = [5mm 0mm],
-        right_margin = [5mm 0mm],
-        top_margin = [5mm 0mm],
-        bottom_margin = [5mm 0mm],
-        palette = pal
-        )
-
-    annotate!((1.42, 0.054, (L"\textbf{Mach \ 1000}", 10, :black, :center)))
-    annotate!((1.42, 0.051, (L"\mathbf{40 \degree}", 10, :black, :center)))
-    
-    plot!(plt, bins, uxes[1], label=L"h = 2r_g")
-    plot!(plt, bins, uxes[2], label=L"h = 4r_g")
-    plot!(plt, bins, uxes[3], label=L"h = 6r_g")
-    plot!(plt, bins, uxes[4], label=L"h = 8r_g")
-    plot!(plt, bins, uxes[5], label=L"h = 10r_g")
-    plot!(plt, bins, uxes[6], label=L"h = 12r_g")
-    plot!(plt, bins, uxes[7], label=L"h = 14r_g")
-
-    display(plt)
-end
-
-# Displaying the results
-begin
-    luxes = fluxes[1]
+    luxes = fluxes[1][1]
     pal = :seaborn_colorblind
 
     plt = plot(
@@ -477,18 +446,16 @@ begin
         )
 
     annotate!((1.42, 0.020, (L"\textbf{Laminar}", 10, :black, :center)))
-    annotate!((1.42, 0.0185, (L"\mathbf{75 \degree}", 10, :black, :center)))
+    annotate!((1.42, 0.0185, (L"\mathbf{40 \degree}", 10, :black, :center)))
     
-    plot!(plt, bins, luxes[1], label=L"h_{cor} = 2r_g")
-    plot!(plt, bins, luxes[2], label=L"h_{cor} = 4r_g")
-    plot!(plt, bins, luxes[3], label=L"h_{cor} = 6r_g")
-    plot!(plt, bins, luxes[4], label=L"h_{cor} = 8r_g")
-    plot!(plt, bins, luxes[5], label=L"h_{cor} = 10r_g")
-    plot!(plt, bins, luxes[6], label=L"h_{cor} = 12r_g")
-    plot!(plt, bins, luxes[7], label=L"h_{cor} = 14r_g")
+    plot!(plt, bins, luxes[1], label=L"a = 0.1")
+    plot!(plt, bins, luxes[2], label=L"a = 0.5")
+    plot!(plt, bins, luxes[3], label=L"a = 0.9")
+    plot!(plt, bins, luxes[4], label=L"a = 0.99")
+    plot!(plt, bins, luxes[5], label=L"a = 0.998")
 
     display(plt)
 end
 
 # Saving current plot
-savefig(plt, "Other/Figs/LeverTweakingPlanned/40/Height/height_1000_40.pdf")
+#savefig(plt, "Other/Figs/LeverTweakingPlanned/40/Height/height_1000_40.pdf")
