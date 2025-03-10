@@ -4,10 +4,10 @@ include("TurbulenceMaps.jl")
 
 bins=200
 
-a = 0.9
+a = 0.80
 M = 1.0
 lum = 7.2e42
-correlation_length = 1
+correlation_length = 5
 mach = 20000
 outer_radius = 40.0
 m = KerrMetric(M, a)
@@ -17,6 +17,10 @@ x = SVector(0.0, 1_000.0, deg2rad(incl_angle), 0.0)
 
 radii = logrange(Gradus.isco(m), outer_radius, bins)
 θ = collect(range(0, 2π, bins))
+
+function velocity_wrapper(m, r, phis, a, M, lum, correlation_length, mach)
+    return turbulence_fbm(m, r, phis, a, M, lum, correlation_length, mach)
+end
 
 function turbulent_redshift(metric, x_obs, vel_func, a, M, lum, correlation_length, mach)
     # metric matrix at the observer's position
@@ -40,10 +44,6 @@ end
 begin
 
     keplerian_velocities = Gradus.CircularOrbits.fourvelocity.(m, radii)
-
-    function velocity_wrapper(m, r, phis, a, M, lum, correlation_length, mach)
-        return turbulence_perlin(m, r, phis, a, M, lum, correlation_length, mach)
-    end
 
     # Calculate turbulent velocities for each combination of r and θ
     turbulent_velocities = [
@@ -93,18 +93,20 @@ begin
 
 end
 
-
 # 1 - time
 # 2 - radial (r)
 # 3 - poloidal (θ)
 # 4 - azimuthal (ϕ)
 
+# MAKE SURE UNITS ARE CORRECT AND PLOTTED AT THE AXES - SHOULD BE RG
+
+
 # 1D Plot of turbulence added
-"""
+
 begin
 
     plt = plot(
-    xlabel = "r (M)",
+    xlabel = "r (M))",
     ylabel = "Δv (unitless)",
     legend = :topright,
     )
@@ -136,14 +138,15 @@ begin
     display(plt)
 
 end
-"""
+
 
 # Turbulence polar heatmap
-"""
+
 begin
     plt = heatmap(
         θ,
-        log10.(radii),
+        #log10.(radii),
+        radii,
         difference_field,
         projection = :polar,
         title = "Magnitude of Velocity Difference", 
@@ -157,7 +160,7 @@ begin
     display(plt)
 
 end
-"""
+
 
 # Redshift heatmap
 
@@ -173,8 +176,8 @@ begin
         d,
         # maximum integration time
         2000.0,
-        αlims = (-60, 60), 
-        βlims = (-20, 30),
+        αlims = (-50, 50), 
+        βlims = (-18, 20),
         image_width = 800,
         image_height = 400,
         verbose = true,
@@ -183,3 +186,8 @@ begin
 
     heatmap(α, β, img, aspect_ratio = 1, color=:inferno)
 end
+
+
+
+#savefig(plt, "Other/Figs/FillInHere.pdf")
+

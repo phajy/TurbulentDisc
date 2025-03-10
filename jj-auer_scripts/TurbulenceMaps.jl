@@ -34,7 +34,7 @@ function turbulence_random(m, r, correlation_length)
     v
 end
 
-function turbulence_perlin(m, r, theta, a, M, lum, correlation_length, mach; intensity = 1, noise_r = perlin_2d(seed=1), noise_p = perlin_2d(seed=2), noise_a = perlin_2d(seed=3))
+function turbulence_perlin(m, r, theta, a, M, lum, correlation_length, mach; noise_r = perlin_2d(seed=4), noise_p = perlin_2d(seed=5), noise_a = perlin_2d(seed=6))
 
     f = inv(correlation_length)
 
@@ -45,9 +45,9 @@ function turbulence_perlin(m, r, theta, a, M, lum, correlation_length, mach; int
     y = r * sin(theta)
     
     # Generate Perlin noise based on the Cartesian coordinates
-    noise_val_r = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(noise_r, f*x, f*y)
-    noise_val_p = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(noise_p, f*x, f*y)
-    noise_val_a = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(noise_a, f*x, f*y)
+    noise_val_r = (1/sqrt(3))*mach*c(m, r, a, M, lum)*sample(noise_r, f*x, f*y)
+    noise_val_p = (1/sqrt(3))*mach*c(m, r, a, M, lum)*sample(noise_p, f*x, f*y)
+    noise_val_a = (1/sqrt(3))*mach*c(m, r, a, M, lum)*sample(noise_a, f*x, f*y)
 
     vt = SVector(0, noise_val_r, noise_val_p, noise_val_a)
     v = keplerian + vt
@@ -60,7 +60,7 @@ function turbulence_perlin(m, r, theta, a, M, lum, correlation_length, mach; int
             
 end
 
-function turbulence_fbm(m, r, theta, a, M, lum, correlation_length, mach; intensity = 1, noise_r = fbm_fractal_2d(seed=1), noise_p = fbm_fractal_2d(seed=2), noise_a = fbm_fractal_2d(seed=3))
+function turbulence_fbm(m, r, theta, a, M, lum, correlation_length, mach; noise_r = fbm_fractal_2d(seed=1), noise_p = fbm_fractal_2d(seed=2), noise_a = fbm_fractal_2d(seed=3))
 
     f = inv(correlation_length)
 
@@ -71,9 +71,9 @@ function turbulence_fbm(m, r, theta, a, M, lum, correlation_length, mach; intens
     y = r * sin(theta)
     
     # Generate Perlin noise based on the Cartesian coordinates
-    noise_val_r = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(noise_r, f*x, f*y)
-    noise_val_p = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(noise_p, f*x, f*y)
-    noise_val_a = (1/sqrt(3))*intensity*mach*c(m, r, a, M, lum)*sample(noise_a, f*x, f*y)
+    noise_val_r = (1/sqrt(3))*mach*c(m, r, a, M, lum)*sample(noise_r, f*x, f*y)
+    noise_val_p = (1/sqrt(3))*mach*c(m, r, a, M, lum)*sample(noise_p, f*x, f*y)
+    noise_val_a = (1/sqrt(3))*mach*c(m, r, a, M, lum)*sample(noise_a, f*x, f*y)
 
     vt = SVector(0, noise_val_r, noise_val_p, noise_val_a)
     v = keplerian + vt
