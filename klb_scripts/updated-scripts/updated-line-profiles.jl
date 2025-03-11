@@ -69,7 +69,7 @@ M = 1.0                  # Black hole mass
 ratio = 0.3              # Eddington ratio
 alpha = 0.1              # Alpha viscosity parameter
 h = 10.0                 # Lamppost height
-mach = 1                 # Mach number 
+mach = 2                 # Mach number 
 correlation_length = 1   # Correlation length
 
 m = KerrMetric(M, a)
@@ -94,7 +94,7 @@ plt = plot(
     xlims = (0, 2.0)
 )
 
-plot!(plt, bins, f_laminar, label=L"\textrm{Zero Turbulence}", color=:black, linestyle=:solid, linewidth=0.8)
+plot!(plt, bins, f_laminar, label=L"\textrm{Zero \ Turbulence}", color=:black, linestyle=:solid, linewidth=0.8)
 plot!(plt, bins, f_turb, label=L"\textrm{Turbulence, Mach = %$mach}", color=:black, linestyle=:dash, linewidth=0.8)
 
 display(plt)
