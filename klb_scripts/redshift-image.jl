@@ -6,7 +6,7 @@ include("velocity-structures-klb.jl")
 include("pariev-bromley-equations-klb.jl")
 
 # Define correlation length
-correlation_length = 10
+correlation_length = 0.1
 
 turbulence_model = "perlin" # "perlin" or "fbm"
 
@@ -14,7 +14,7 @@ turbulence_model = "perlin" # "perlin" or "fbm"
 inc_angles = [30, 60, 75]
 q_values = [2, 3, 4]
 
-function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
+function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, luminosity, L_edd, r_ms, epsilon, mach)
     # Metric matrix at the observer's position
     g_obs = Gradus.metric(metric, x_obs)
     # Fixed stationary observer velocity
@@ -23,7 +23,7 @@ function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L
     # Internal closure function
     function _internal_turbulent_redshift(m::AbstractMetric, gp, t)
         # Pass correlation_length to vel_func
-        v_disc = vel_func(m, gp.x[2], gp.x[4], correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
+        v_disc = vel_func(m, gp.x[2], gp.x[4], correlation_length, a, M, luminosity, L_edd, r_ms, epsilon, mach)
 
         g = Gradus.metric(m, gp.x)
         Gradus.RedshiftFunctions._redshift_dotproduct(g, v_disc, g_obs, v_obs, gp)
@@ -33,11 +33,11 @@ function turbulent_redshift(metric, x_obs, vel_func, correlation_length, a, M, L
 end
 
 # Wrapper function to select appropriate turbulence model
-function velocity_wrapper(m, r, theta, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
+function velocity_wrapper(m, r, theta, correlation_length, a, M, luminosity, L_edd, r_ms, epsilon, mach)
     if turbulence_model == "perlin"
-        return turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
+        return turb_perlin(m, r, theta, a, M, luminosity, L_edd, r_ms, epsilon, correlation_length, mach)
     elseif turbulence_model == "fbm"
-        return return turb_fbm(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length, mach)
+        return return turb_fbm(m, r, theta, a, M, luminosity, L_edd, r_ms, epsilon, correlation_length, mach)
     end
 end
 
@@ -49,7 +49,7 @@ outer_radius = 400.0
 # Define parameters for turbulence model
 a = 0.998  # Black hole spin
 M = 1.0  # Black hole mass in geometrized units
-L = 1e46  # Luminosity in ergs/s
+luminosity = 1e46  # Luminosity in ergs/s
 L_edd = 1.2e46 * (M/1e8)  # Compute Eddington luminosity
 r_ms = Gradus.isco(m)  # Compute ISCO
 epsilon = 0.1  # Efficiency factor
@@ -69,7 +69,7 @@ for q in q_values
             d = discs[edd_ratio]
 
             # Compose our turbulent redshift function with a filter function to remove points outside of the ISCO
-            redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length, a, M, L, L_edd, r_ms, epsilon, mach)
+            redshift_pf = turbulent_redshift(m, x, velocity_wrapper, correlation_length, a, M, luminosity, L_edd, r_ms, epsilon, mach)
             pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
 
             # Render geodesics using the modified point function 
@@ -99,12 +99,12 @@ for q in q_values
             println("Saved figure to: $filename")
 
             # Define emissivity function 
-            ϵ(r) = r^(-q)
+            emissivity(r) = r^(-q)
 
             # Create and plot line profile 
             bins = collect(range(0.0, 2.0, 200))
             plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = outer_radius)
-            bins, f = lineprofile(bins, ϵ, m, x, d, redshift_pf = pf, verbose = true, method = BinningMethod(), plane = plane)
+            bins, f = lineprofile(bins, emissivity, m, x, d, redshift_pf = pf, verbose = true, method = BinningMethod(), plane = plane)
 
 
             # Set whatever is in the last bin to 0 as it's most likely a noise contribution
