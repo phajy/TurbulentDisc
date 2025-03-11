@@ -4,7 +4,7 @@
 # Import libraries
 using Plots, Gradus, Measures, LaTeXStrings
 include("TurbulenceMaps.jl")
-include("SoundSpeed.jl")
+include("SoundandRadialSpeed.jl")
 
 plot_font = "Computer Modern"
 default(fontfamily=plot_font,
@@ -18,7 +18,7 @@ x = SVector(0.0, 1_000.0, deg2rad(incl_angle), 0.0)
 # Functions used for turbulence
 # +------------------------------------------------------------------------------+
 
-function turbulent_redshift(metric, x_obs, vel_func, a, M, lum, correlation_length, mach)
+function turbulent_redshift(metric, x_obs, vel_func, a, M, ratio, alpha, correlation_length, mach)
     # metric matrix at the observer's position
     g_obs = Gradus.metric(metric, x_obs)
     # fixed stationary observer velocity
@@ -26,7 +26,7 @@ function turbulent_redshift(metric, x_obs, vel_func, a, M, lum, correlation_leng
 
     # internal closure
     function _internal_turbulent_redshift(m::AbstractMetric, gp, t)
-        v_disc = vel_func(m, gp.x[2], gp.x[4], a, M, lum, correlation_length, mach)
+        v_disc = vel_func(m, gp.x[2], gp.x[4], a, M, ratio, alpha, correlation_length, mach)
 
         g = Gradus.metric(m, gp.x)
         Gradus.RedshiftFunctions._redshift_dotproduct(g, v_disc, g_obs, v_obs, gp)
@@ -37,8 +37,8 @@ end
 
 # NOTE: this function is not valid within the ISCO, so we need to make sure that
 # we **always** set the inner radius of the disc to the ISCO
-function velocity_wrapper(m, r, phis, a, M, lum, correlation_length, mach)
-    return turbulence_fbm(m, r, phis, a, M, lum, correlation_length, mach)
+function velocity_wrapper(m, r, phis, a, M, ratio, alpha, correlation_length, mach)
+    return turbulence_fbm(m, r, phis, a, M, ratio, alpha, correlation_length, mach)
 end
 
 
@@ -49,79 +49,43 @@ function calculate_line_profile(
     d,
     a,
     M,
-    lum,
+    ratio,
+    alpha,
     bins,
     ε,
-    turbulenceOn = false,
     correlation_length=1,
     mach=1
     )
 
     plane = PolarPlane(GeometricGrid(); Nr = 1000, Nθ = 1000, r_max = 100.0)
+    redshift_pf = turbulent_redshift(m, x, velocity_wrapper, a, M, ratio, alpha, correlation_length, mach)
+    pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
 
-    if turbulenceOn == false
+    if typeof(ε) <: Gradus.RadialDiscProfile
 
-        if typeof(ε) <: Gradus.RadialDiscProfile
+        _, f = lineprofile(
+            m,
+            x,
+            d,
+            ε;
+            method = BinningMethod(),
+            redshift_pf = pf,
+            bins = bins,
+            plane = plane,
+            verbose = true)
 
-            _, f = lineprofile(
-                m,
-                x,
-                d,
-                ε;
-                method = BinningMethod(),
-                plane = plane,
-                bins = bins,
-                verbose = true
-            )
+    else
 
-        else
-
-            _, f = lineprofile(
-                bins,
-                ε,
-                m,
-                x,
-                d;
-                method = BinningMethod(),
-                plane = plane,
-                verbose = true
-            )
-
-        end
-
-
-    elseif turbulenceOn == true
-
-        redshift_pf = turbulent_redshift(m, x, velocity_wrapper, a, M, lum, correlation_length, mach)
-        pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
-
-        if typeof(ε) <: Gradus.RadialDiscProfile
-
-            _, f = lineprofile(
-                m,
-                x,
-                d,
-                ε;
-                method = BinningMethod(),
-                redshift_pf = pf,
-                bins = bins,
-                plane = plane,
-                verbose = true)
-
-        else
-
-            _, f = lineprofile(
-                bins,
-                ε,
-                m,
-                x,
-                d;
-                method = BinningMethod(),
-                redshift_pf = pf,
-                plane = plane,
-                verbose = true)
-
-        end
+        _, f = lineprofile(
+            bins,
+            ε,
+            m,
+            x,
+            d;
+            method = BinningMethod(),
+            redshift_pf = pf,
+            plane = plane,
+            verbose = true)
 
     end
 
@@ -215,225 +179,125 @@ begin
         bottom_margin = [5mm 0mm]
     )
 
-    # Define parameters
-    begin
-        a = 0.998
-        M = 1.0
-        lum = 7.2e42
-        lum_edd = LumEdd(M)
-        m = KerrMetric(M, a)
-        inner_radius = Gradus.isco(m)
-        outer_radius = 100.0
-        d = ThinDisc(inner_radius, outer_radius)
-        bins = collect(range(0.1, 1.5, 200))
-        x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
-        turbulenceOn = true
-        mach = 1000
-        correlation_length=1
-    end
+    bins = collect(range(0.1, 2.5, 200))
 
-    # Calculate flux for each bin and add to plot
-    f = calculate_line_profile(m, x, d, a, M, lum, bins, r -> r^-3, turbulenceOn, correlation_length, mach)
-    plot!(plt, bins, f, label="Outer Radius = 100M")
+    a=0.998
+    M = 1.0
+    ratio = 1.0
+    alpha = 0.1
+    m = KerrMetric(M, a)
+    inner_radius = Gradus.isco(m)
+    outer_radius = 100.0
+    d = ThinDisc(inner_radius, outer_radius)
+    x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
+    mach = 3
+    correlation_length=1
+    model = LampPostModel(h=10.0)
+    profile = emissivity_profile(m, d, model)
+    f = calculate_line_profile(m, x, d, a, M, ratio, alpha, bins, profile, correlation_length, mach)
+    plot!(plt, bins, f, label=L"Mach 1")
+
     display(plt)
 end
 """
 
-# Plotting line profiles for variation of a parameter, for different Mach numbers
+plt = plot(
+    xlabel = L"ν/ν_e \ / \ \textrm{Unitless}",
+    ylabel = L"\textrm{Flux \ / \ Arbitrary Units}",
+    legend = :topleft,
+    left_margin = [5mm 0mm],
+    right_margin = [5mm 0mm],
+    top_margin = [5mm 0mm],
+    bottom_margin = [5mm 0mm],
+    palette = pal
+)
+
+
+bins = collect(range(0.1, 4.0, 200))
 
 fluxes = [
-    [[[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []]], #Spin
-    [[[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []]], #Eddington Ratio
-    [[[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []]], #Correlation Length
-    [[[], [], [], [], [], [], []], [[], [], [], [], [], [], []], [[], [], [], [], [], [], []], [[], [], [], [], [], [], []], [[], [], [], [], [], [], []]], #Lamp Height
+
+    [[[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []]], # Spin
+    [[[], [], [], [], [], [], []], [[], [], [], [], [], [], []], [[], [], [], [], [], [], []], [[], [], [], [], [], [], []], [[], [], [], [], [], [], []], [[], [], [], [], [], [], []], [[], [], [], [], [], [], []]], # Height
+    [[[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []]] # Correlation Length
+
 ]
 
-bins = collect(range(0.1, 1.5, 200))
+for i in 1:3
 
-for i in 1:4
+    for (j, mach) in enumerate([0, 0.1, 1, 5, 10, 20, 30])
 
-    for (j, mach) in enumerate([0, 1, 10, 100, 1000])
-
-        if i == 1 # Spin
-
-            if j == 1
-
-                for (k, a) in enumerate([0.1, 0.5, 0.9, 0.99, 0.998])
-
-                    M = 1.0
-                    lum = 7.2e42
-                    lum_edd = LumEdd(M)
-                    m = KerrMetric(M, a)
-                    inner_radius = Gradus.isco(m)
-                    outer_radius = 100.0
-                    d = ShakuraSunyaev(m, eddington_ratio=0.1)
-                    x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
-                    turbulenceOn = false
-                    correlation_length=1
-                    model = LampPostModel(h=10.0)
-                    profile = emissivity_profile(m, d, model)
-                    fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, lum, bins, profile, turbulenceOn, correlation_length, mach)
-    
-                end
-            end
+        if i == 1
 
             for (k, a) in enumerate([0.1, 0.5, 0.9, 0.99, 0.998])
 
                 M = 1.0
-                lum = 7.2e42
-                lum_edd = LumEdd(M)
-                m = KerrMetric(M, a)
-                inner_radius = Gradus.isco(m)
-                outer_radius = 100.0
-                d = ShakuraSunyaev(m, eddington_ratio=0.1)
-                x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
-                turbulenceOn = true
-                correlation_length=1
-                model = LampPostModel(h=10.0)
-                profile = emissivity_profile(m, d, model)
-                fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, lum, bins, profile, turbulenceOn, correlation_length, mach)
-
-            end
-        end
-
-        if i == 2 # Eddington Ratio
-
-            if j == 1
-
-                for (k, ratio) in enumerate([0.1, 0.4, 0.7, 1.0, 1.3])
-
-                    a=0.998
-                    M = 1.0
-                    lum = 7.2e42
-                    lum_edd = LumEdd(M)
-                    m = KerrMetric(M, a)
-                    inner_radius = Gradus.isco(m)
-                    outer_radius = 100.0
-                    d = ShakuraSunyaev(m, eddington_ratio=ratio)
-                    x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
-                    turbulenceOn = false
-                    correlation_length=1
-                    model = LampPostModel(h=10.0)
-                    profile = emissivity_profile(m, d, model)
-                    fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, lum, bins, profile, turbulenceOn, correlation_length, mach)
-    
-                end
-            end
-
-
-            for (k, ratio) in enumerate([0.1, 0.4, 0.7, 1.0, 1.3])
-
-                a=0.998
-                M = 1.0
-                lum = 7.2e42
-                lum_edd = LumEdd(M)
+                ratio = 0.1
+                alpha = 0.1
+                h = 10.0
                 m = KerrMetric(M, a)
                 inner_radius = Gradus.isco(m)
                 outer_radius = 100.0
                 d = ShakuraSunyaev(m, eddington_ratio=ratio)
                 x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
-                turbulenceOn = true
                 correlation_length=1
-                model = LampPostModel(h=10.0)
+                model = LampPostModel(h=h)
                 profile = emissivity_profile(m, d, model)
-                fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, lum, bins, profile, turbulenceOn, correlation_length, mach)
+                fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, ratio, alpha, bins, profile, correlation_length, mach)
 
             end
-        end
-
-        if i == 3 # Correlation Length
-
-            if j == 1
-
-                for (k, correlation_length) in enumerate([0.1, 1.0, 5.0, 10.0, 50.0])
-
-                    a=0.998
-                    M = 1.0
-                    lum = 7.2e42
-                    lum_edd = LumEdd(M)
-                    m = KerrMetric(M, a)
-                    inner_radius = Gradus.isco(m)
-                    outer_radius = 100.0
-                    d = ShakuraSunyaev(m, eddington_ratio=0.1)
-                    x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
-                    turbulenceOn = false
-                    model = LampPostModel(h=10.0)
-                    profile = emissivity_profile(m, d, model)
-                    fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, lum, bins, profile, turbulenceOn, correlation_length, mach)
-    
-                end
-            end
-
-            for (k, correlation_length) in enumerate([0.1, 1.0, 5.0, 10.0, 50.0])
-
-                a=0.998
-                M = 1.0
-                lum = 7.2e42
-                lum_edd = LumEdd(M)
-                m = KerrMetric(M, a)
-                inner_radius = Gradus.isco(m)
-                outer_radius = 100.0
-                d = ShakuraSunyaev(m, eddington_ratio=0.1)
-                x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
-                turbulenceOn = true
-                model = LampPostModel(h=10.0)
-                profile = emissivity_profile(m, d, model)
-                fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, lum, bins, profile, turbulenceOn, correlation_length, mach)
-
-            end
-        end
-
-        if i == 4 # Lamp Height
-
-            if j == 1
-
-                for (k, h) in enumerate([2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0])
-
-                    a=0.998
-                    M = 1.0
-                    lum = 7.2e42
-                    lum_edd = LumEdd(M)
-                    m = KerrMetric(M, a)
-                    inner_radius = Gradus.isco(m)
-                    outer_radius = 100.0
-                    d = ShakuraSunyaev(m, eddington_ratio=0.1)
-                    x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
-                    turbulenceOn = false
-                    correlation_length=1
-                    model = LampPostModel(h=h)
-                    profile = emissivity_profile(m, d, model)
-                    fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, lum, bins, profile, turbulenceOn, correlation_length, mach)
-    
-                end
-            end
+        
+        elseif i == 2
 
             for (k, h) in enumerate([2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0])
 
                 a=0.998
                 M = 1.0
-                lum = 7.2e42
-                lum_edd = LumEdd(M)
+                ratio = 0.1
+                alpha = 0.1
                 m = KerrMetric(M, a)
                 inner_radius = Gradus.isco(m)
                 outer_radius = 100.0
-                d = ShakuraSunyaev(m, eddington_ratio=0.1)
+                d = ShakuraSunyaev(m, eddington_ratio=ratio)
                 x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
-                turbulenceOn = true
                 correlation_length=1
                 model = LampPostModel(h=h)
                 profile = emissivity_profile(m, d, model)
-                fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, lum, bins, profile, turbulenceOn, correlation_length, mach)
+                fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, ratio, alpha, bins, profile, correlation_length, mach)
 
             end
+        
+        elseif i == 3
+
+            for (k, l) in enumerate([0.1, 1, 5, 10, 50])
+
+                a=0.998
+                M = 1.0
+                ratio = 0.1
+                alpha = 0.1
+                h = 10.0
+                m = KerrMetric(M, a)
+                inner_radius = Gradus.isco(m)
+                outer_radius = 100.0
+                d = ShakuraSunyaev(m, eddington_ratio=ratio)
+                x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
+                model = LampPostModel(h=h)
+                profile = emissivity_profile(m, d, model)
+                fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, ratio, alpha, bins, profile, correlation_length, mach)
+
+            end
+        
         end
+
     end
+
 end
 
+"""
 # Displaying the results
 begin
-    luxes = fluxes[1][1]
-    pal = :seaborn_colorblind
 
+    pal = :seaborn_colorblind
     plt = plot(
         xlabel = L"ν/ν_e \ / \ \textrm{Unitless}",
         ylabel = L"\textrm{Flux \ / \ Arbitrary Units}",
@@ -459,3 +323,5 @@ end
 
 # Saving current plot
 #savefig(plt, "Other/Figs/LeverTweakingPlanned/40/Height/height_1000_40.pdf")
+
+"""

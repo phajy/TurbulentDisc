@@ -1,9 +1,9 @@
 using Plots
-include("SoundandRadialSpeedtest.jl")
+include("SoundandRadialSpeed.jl")
 
 M = 1.0
 alpha = 0.1
-ratio = 1
+ratio = 1.0
 
 rPos = collect(range(1.0, stop=25.0, length=500))
 
@@ -20,6 +20,7 @@ for a in [0.0, 0.5, 0.9, 0.99, 0.998]
 end
 
 display(plt_sound)
+
 
 plt_radial = plot(
     xlabel = "Radius (r/M)",
