@@ -5,7 +5,7 @@ include("updated-sound-speed.jl")
 
 function turbulence_perlin(m, r, theta, a, M, ratio, alpha, correlation_length, mach; noise_r = perlin_2d(seed=1), noise_p = perlin_2d(seed=2), noise_a = perlin_2d(seed=3))
 
-    keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
+    v_keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
 
     # Convert polar to Cartesian coordinates
     x = r * cos(theta)
@@ -18,20 +18,20 @@ function turbulence_perlin(m, r, theta, a, M, ratio, alpha, correlation_length, 
 
     radial_inflow = RadialSpeed(m, r, a, alpha, M, ratio)
 
-    v_additional = SVector(0, noise_val_r + radial_inflow, noise_val_p, noise_val_a)
-    v = keplerian + v_additional
+    v_turb = SVector(0, noise_val_r + radial_inflow, noise_val_p, noise_val_a)
+    v_eff = v_keplerian + v_turb
 
     # Ensure velocity constraint
     x = SVector(0.0, r, π/2, 0.0)
-    Gradus.constrain_all(m, x, v, 1.0)
+    Gradus.constrain_all(m, x, v_eff, 1.0)
 
-    return v
+    return v_eff
             
 end
 
 function turbulence_fbm(m, r, theta, a, M, ratio, alpha, correlation_length, mach; noise_r = fbm_fractal_2d(seed=4), noise_p = fbm_fractal_2d(seed=5), noise_a = fbm_fractal_2d(seed=6))
 
-    keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
+    v_keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
 
     # Convert polar to Cartesian coordinates
     x = r * cos(theta)
@@ -44,13 +44,13 @@ function turbulence_fbm(m, r, theta, a, M, ratio, alpha, correlation_length, mac
 
     radial_inflow = RadialSpeed(m, r, a, alpha, M, ratio)
 
-    v_additional = SVector(0, noise_val_r + radial_inflow, noise_val_p, noise_val_a)
-    v = keplerian + v_additional
+    v_turb = SVector(0, noise_val_r + radial_inflow, noise_val_p, noise_val_a)
+    v_eff = v_keplerian + v_turb
 
     # Ensure velocity constraint
     x = SVector(0.0, r, π/2, 0.0)
-    Gradus.constrain_all(m, x, v, 1.0)
+    Gradus.constrain_all(m, x, v_eff, 1.0)
 
-    return v
+    return v_eff
             
 end
