@@ -4,9 +4,7 @@
 # any top-level code will be executed in all of them.
 
 using Gradus, Plots, CoherentNoise
-include("SoundSpeed.jl")
-
-c(m, r, a, M, lum) = SoundSpeed(m, r, a, M, lum)
+include("SoundandRadialSpeed.jl")
 
 function logrange(first, last, num)
     10 .^ collect(range(log10(first), log10(last), num))
@@ -34,12 +32,8 @@ function turbulence_random(m, r, correlation_length)
     v
 end
 
+function turbulence_perlin(m, r, theta, a, M, lum, correlation_length, mach; noise_r = perlin_2d(seed=4), noise_p = perlin_2d(seed=5), noise_a = perlin_2d(seed=6))
 
-perlin_noise = perlin_2d(seed=1)
-
-function turbulence_perlin(m, r, theta, a, M, lum, correlation_length=1)
-
-    intensity=0.2
     f = inv(correlation_length)
 
     keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
@@ -49,19 +43,23 @@ function turbulence_perlin(m, r, theta, a, M, lum, correlation_length=1)
     y = r * sin(theta)
     
     # Generate Perlin noise based on the Cartesian coordinates
-    noise_val = intensity*c(m, r, a, M, lum)*sample(perlin_noise, f*x, f*y)
+    noise_val_r = (1/sqrt(3))*mach*c(m, r, a, M, lum)*sample(noise_r, f*x, f*y)
+    noise_val_p = (1/sqrt(3))*mach*c(m, r, a, M, lum)*sample(noise_p, f*x, f*y)
+    noise_val_a = (1/sqrt(3))*mach*c(m, r, a, M, lum)*sample(noise_a, f*x, f*y)
 
-
-    vt = SVector(0, noise_val, 0, 0)
+    vt = SVector(0, noise_val_r, noise_val_p, noise_val_a)
     v = keplerian + vt
+
+    # Ensure velocity constraint
+    x = SVector(0.0, r, π/2, 0.0)
+    Gradus.constrain_all(m, x, v, 1.0)
+
+    return v
             
 end
 
-fractal_noise = fbm_fractal_2d(seed=1)
+function turbulence_fbm(m, r, theta, a, M, ratio, alpha, correlation_length, mach; noise_r = fbm_fractal_2d(seed=1), noise_p = fbm_fractal_2d(seed=2), noise_a = fbm_fractal_2d(seed=3))
 
-function turbulence_fbmfractal(m, r, theta, a, M, lum, correlation_length=1, mach=1)
-
-    intensity=1
     f = inv(correlation_length)
 
     keplerian = Gradus.CircularOrbits.fourvelocity(m, r)
@@ -71,10 +69,19 @@ function turbulence_fbmfractal(m, r, theta, a, M, lum, correlation_length=1, mac
     y = r * sin(theta)
     
     # Generate Perlin noise based on the Cartesian coordinates
-    noise_val = intensity*mach*c(m, r, a, M, lum)*sample(fractal_noise, f*x, f*y)
+    noise_val_r = (1/sqrt(3))*mach*SoundSpeed(m, r, a, M, ratio)*sample(noise_r, f*x, f*y)
+    noise_val_p = (1/sqrt(3))*mach*SoundSpeed(m, r, a, M, ratio)*sample(noise_p, f*x, f*y)
+    noise_val_a = (1/sqrt(3))*mach*SoundSpeed(m, r, a, M, ratio)*sample(noise_a, f*x, f*y)
 
+    radial_inflow = RadialSpeed(m, r, a, alpha, M, ratio)
 
-    vt = SVector(0, noise_val, 0, 0)
-    v = keplerian + vt
+    v_additional = SVector(0, noise_val_r + radial_inflow, noise_val_p, noise_val_a)
+    v = keplerian + v_additional
+
+    # Ensure velocity constraint
+    x = SVector(0.0, r, π/2, 0.0)
+    Gradus.constrain_all(m, x, v, 1.0)
+
+    return v
             
 end
