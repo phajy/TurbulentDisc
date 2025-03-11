@@ -2,6 +2,9 @@
 
 using Gradus, Plots, CoherentNoise, Statistics, StaticArrays, LinearAlgebra
 include("pariev-bromley-equations-klb.jl")  # Import sound speed function
+plot_font = "Computer Modern"
+default(fontfamily=plot_font,
+        linewidth=2, framestyle=:box, label=nothing, grid=false)
 
 # Wrapper function for sound speed using Pariev & Bromley prescription
 c(m, r, a, M, L, L_edd, r_ms, epsilon) = sound_speed_ratio(r, a, epsilon, L, L_edd, r_ms, M)
@@ -38,9 +41,9 @@ function turb_perlin(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_len
 
     # Sample Perlin noise 
     noise = scale_factor * sample(perlin_noise, x / correlation_length, y / correlation_length)
-    noise *= mach * c(m, r, a, M, L, L_edd, r_ms, epsilon) # normalise to sound speed
+    norm_noise = noise * mach * c(m, r, a, M, L, L_edd, r_ms, epsilon) # normalise to sound speed
 
-    vt = SVector(0, noise, 0, 0)
+    vt = SVector(0, norm_noise, 0, 0)
     
     # Add noise to Keplerian velocity
     v = keplerian .+ vt
@@ -67,9 +70,9 @@ function turb_fbm(m, r, theta, a, M, L, L_edd, r_ms, epsilon, correlation_length
 
     # Sample fBm noise 
     noise = scale_factor * sample(fbm_noise, x / correlation_length, y / correlation_length)
-    noise *= mach * c(m, r, a, M, L, L_edd, r_ms, epsilon) # normalise to sound speed
+    norm_noise = noise * mach * c(m, r, a, M, L, L_edd, r_ms, epsilon) # normalise to sound speed
 
-    vt = SVector(0, noise, 0, 0)
+    vt = SVector(0, norm_noise, 0, 0)
 
     # Add noise to Keplerian velocity
     v = keplerian .+ vt
@@ -125,6 +128,7 @@ fbm_min, fbm_max = extrema(fbm_values)
 println("Perlin Noise Extrema: min = $perlin_min, max = $perlin_max")
 println("fBm Noise Extrema: min = $fbm_min, max = $fbm_max")
 
+histogram(fbm_values, bins=50, alpha=0.6, label="fBm Noise", normalize=:pdf)
 histogram(perlin_values, bins=50, alpha=0.6, label="Perlin Noise", normalize=:pdf)
 histogram!(fbm_values, bins=50, alpha=0.6, label="fBm Noise", normalize=:pdf, 
     title="Noise Distribution Comparison", xlabel="Velocity Perturbation", ylabel="Probability Density")
