@@ -7,32 +7,24 @@ default(fontfamily=plot_font,
         linewidth=0.8, label=nothing, 
         grid=false)
 
+# Define metric and observer
 m = KerrMetric(M=1.0, a=0.998)
-x = SVector(0.0, 1000.0, deg2rad(30), 0.0)
+incl_angle = 75
+x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
 
-h_scale = 0.3
-outer_radius = 50.0 
-
-# Define Thick Disc Height Profile
-function height_profile_exponential(u)
-    r = u isa Number ? u : u[2]  
-    if r > outer_radius
-        return -1.0
-    else
-        return h_scale * r * exp(-r / outer_radius)  
-    end
-end
-
-thick_disc = ThickDisc(height_profile_exponential)
+# Define Shakura-Sunyaev disc (thin disc) with L_edd = 0.3
+ssd = ShakuraSunyaev(m, eddington_ratio=0.3)
 pf = ConstPointFunctions.redshift(m, x) ∘ ConstPointFunctions.filter_intersected()
 
+# Render geodesic redshift map
 α, β, img = rendergeodesics(
-    m, x, thick_disc, 2000.0,
+    m, x, ssd, 2000.0,
     αlims=(-25, 25), βlims=(-20, 20),
     image_width=800, image_height=400,
     verbose=true, pf=pf
 )
 
+# Plot redshift image
 plt = heatmap(α, β, img, aspect_ratio=1,
               xlabel=L"\alpha",
               ylabel=L"\beta",
@@ -42,7 +34,7 @@ plt = heatmap(α, β, img, aspect_ratio=1,
 
 output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\updated_klb_plots\\redshift_maps"
 mkpath(output_dir)
-filename = joinpath(output_dir, "thick_disc_redshift.pdf")
+filename = joinpath(output_dir, "ssd_redshift_$(incl_angle).pdf")
 savefig(plt, filename)
 
 println("Saved figure to: $filename")
