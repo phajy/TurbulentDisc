@@ -38,14 +38,14 @@ for eddington_ratio in [1, 0.5]
             # Plot sound speed (dashed line)
             plot!(rPos, [SoundSpeed(m, r, a, M, eddington_ratio) for r in rPos], 
                 linestyle=:dash, 
-                color=:blue,  # Keep all lines blue
-                alpha=alpha_values[idx],  # Apply varying transparency
+                color=:navy, 
+                alpha=alpha_values[idx], 
                 label="")
 
             # Plot radial inflow (solid line) 
             plot!(rPos, [RadialSpeed(m, r, a, alpha, M, eddington_ratio) for r in rPos], 
                 linestyle=:solid, 
-                color=:blue,  
+                color=:navy,  
                 alpha=alpha_values[idx], 
                 label="a/M = $a")
         end
