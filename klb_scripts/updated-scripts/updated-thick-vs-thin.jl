@@ -16,7 +16,7 @@ function calculate_zero_turbulence_line_profile(m, x, d, bins, ε)
     return f
 end
 
-incl_angle = 30
+incl_angle = 75
 x = SVector(0.0, 1_000.0, deg2rad(incl_angle), 0.0)
 
 a = 0.998                # Black hole spin parameter
@@ -27,7 +27,7 @@ h = 10.0                 # Lamppost height
 
 m = KerrMetric(M, a)
 inner_radius = Gradus.isco(m)
-outer_radius = 400.0
+outer_radius = 50.0
 bins = collect(range(0.1, 2.0, 200))
 
 # ---- Thin Disc (Shakura-Sunyaev) ----
@@ -49,7 +49,7 @@ end
 
 plt = plot(
     xlabel = L"ν/ν_e",
-    ylabel = L"\textrm{Flux \ (Arbitrary Units)}",
+    ylabel = L"\textrm{Flux \ (Arbitrary \ Units)}",
     legend = :topleft,
     left_margin = [5mm 0mm],
     right_margin = [5mm 0mm],
@@ -76,6 +76,6 @@ display(plt)
 
 output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\updated_klb_plots\\line_profiles"
 mkpath(output_dir)
-filename = joinpath(output_dir, "baseline_thin_vs_thick_hscale_variation.pdf")
+filename = joinpath(output_dir, "baseline_thin_vs_thick_hscale_variation_$incl_angle.pdf")
 savefig(plt, filename)
 println("Saved figure to: $filename")
