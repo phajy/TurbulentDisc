@@ -24,7 +24,7 @@ turbulence_model = "fbm" # 'perlin' or 'fbm'
 
 opacity_values = Dict(1 => 1.0, 2 => 0.8, 5 => 0.6)
 
-output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\updated_klb_plots\\line_profiles"
+output_dir = "C:\\Users\\Kate\\project\\TurbulentDisc\\updated_klb_plots\\line_profiles\\turbulent"
 mkpath(output_dir)
 
 # Function for turbulent redshift
