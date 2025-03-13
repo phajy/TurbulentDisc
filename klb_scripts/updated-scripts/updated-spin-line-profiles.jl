@@ -32,7 +32,6 @@ for incl_angle in inclination_angles
         xlabel = L"\nu/\nu_e",
         ylabel = L"\textrm{Flux \ (Arbitrary \ Units)}",
         legend = :topleft,
-        title = L"\textrm{i = %$incl_angle^\circ}",
         titlefont = 11,
         left_margin = [5mm 0mm], right_margin = [5mm 0mm],
         top_margin = [5mm 0mm], bottom_margin = [5mm 0mm],
