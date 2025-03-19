@@ -1,3 +1,11 @@
+"""
+This script plots line profiles for accretion discs with varying turbulence correlation lengths.
+It explores:
+- The impact of different correlation lengths on emission line profiles.
+- Comparisons between thin (Shakura-Sunyaev) and thick (exponential height profile) accretion discs.
+- The effect of inclination angle on the observed line shapes.
+- A range of correlation lengths from 0.5 to 10.
+"""
 using Plots, Gradus, Measures, LaTeXStrings
 include("updated-velocity-functions.jl")
 include("updated-sound-speed.jl")       

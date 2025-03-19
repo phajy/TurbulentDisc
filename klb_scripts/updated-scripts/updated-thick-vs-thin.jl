@@ -1,4 +1,11 @@
-# Script to compare thin vs thick disc line profiles as a baseline
+"""
+This script compares thin and thick accretion disc line profiles as a 'baseline'.
+It computes the zero-turbulence (laminar) emission line profiles for different disc structures:
+- A Shakura-Sunyaev thin disc model.
+- A thick disc with varying scale heights, modelled using an exponential height profile.
+- The impact of different disc geometries on the emission line profile at an inclination of 75 degrees.
+The script outputs a plot comparing the thin and thick disc emission profiles.
+"""
 
 using Plots, Gradus, Measures, LaTeXStrings
 include("updated-velocity-functions.jl")

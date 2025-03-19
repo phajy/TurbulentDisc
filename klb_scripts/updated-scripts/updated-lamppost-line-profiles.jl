@@ -1,3 +1,11 @@
+"""
+This script plots line profiles for accretion discs with varying lamppost heights.
+It explores:
+- The impact of different lamppost corona heights on the emission line profiles.
+- Comparisons between thin (Shakura-Sunyaev) and thick (exponential height profile) accretion discs.
+- The effect of inclination angle on the observed line shapes.
+- A range of lamppost heights from 3M to 30M.
+"""
 using Plots, Gradus, Measures, LaTeXStrings
 include("updated-velocity-functions.jl")
 include("updated-sound-speed.jl")

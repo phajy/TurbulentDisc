@@ -1,5 +1,11 @@
-# Script to generate redshift images of accretion disc geometries (thin and thick discs)
-
+"""
+This script generates redshift images for different (laminar) accretion disc geometries (thin and thick discs).
+It computes:
+- The redshift map of an accretion disc around a Kerr black hole.
+- A Shakura-Sunyaev thin disc model with an Eddington ratio of 0.3.
+- The observer's view of the disc at a specified inclination angle.
+- Geodesic rendering of the redshift distribution across the observed image plane.
+"""
 using Gradus, Plots, Measures, LaTeXStrings
 
 plot_font = "Computer Modern"

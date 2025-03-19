@@ -1,4 +1,13 @@
-# This script plots polar heatmap of specific turbulence model, correlation length and Mach number
+"""
+This script plots a polar heatmap of the turbulence model's velocity difference relative to Keplerian motion
+for a given correlation length and Mach number in an accretion disc.
+It computes:
+- The relativistic Kerr metric for the black hole's spacetime.
+- Keplerian velocities of disc elements.
+- Turbulent velocities using Perlin noise or fractional Brownian motion (fBm).
+- The percentage difference between turbulent and Keplerian velocities.
+The script outputs a heatmap representing the spatial variation of turbulence-induced velocity changes.
+"""
 
 using Plots, Gradus, Measures, LaTeXStrings
 

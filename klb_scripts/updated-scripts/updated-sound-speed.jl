@@ -1,6 +1,7 @@
-# This scripts defines the sound speed function (Equation 15), and radial inflow velocity function (Equation 16)
-# defined by Pariev & Bromley 1998.
-
+"""
+This script defines the sound speed function (Equation 15) and radial inflow velocity function (Equation 16),
+as described by Pariev & Bromley (1998).
+"""
 using Gradus
 
 function A(r_star, a_star, M)

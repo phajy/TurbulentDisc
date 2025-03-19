@@ -1,3 +1,13 @@
+"""
+This script generates turbulent and zero-turbulence (laminar) line profiles for accretion discs around black holes.
+It computes the redshift distribution of emission lines, incorporating:
+- A relativistic Kerr metric for the black hole's spacetime.
+- Two turbulence models (Perlin noise and fractional Brownian motion, fBm) to simulate turbulent motion in the disc.
+- Emissivity profiles based on the Shakura-Sunyaev thin disc and an exponential height profile for the thick disc.
+- Inclination-dependent line profiles at various Mach numbers.
+The script outputs line profile plots for both thin and thick discs at different inclination angles.
+"""
+
 using Plots, Gradus, Measures, LaTeXStrings
 include("updated-velocity-functions.jl") 
 include("updated-sound-speed.jl")       
@@ -109,7 +119,7 @@ for incl_angle in inclination_angles
     end
 
     filename_thin = joinpath(output_dir, "$(turbulence_model)_line_profile_thin_incl$(incl_angle).pdf")
-    savefig(plt_thin, filename_thin)
+    #savefig(plt_thin, filename_thin)
     display(plt_thin)
 
     # Plot for thick disc (Zero Turbulence and Turbulence)
@@ -143,6 +153,6 @@ for incl_angle in inclination_angles
     end
 
     filename_thick = joinpath(output_dir, "$(turbulence_model)_line_profile_thick_incl$(incl_angle).pdf")
-    savefig(plt_thick, filename_thick)
+    #savefig(plt_thick, filename_thick)
     display(plt_thick)
 end

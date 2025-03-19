@@ -1,4 +1,12 @@
-# Script to plot non-turbulent line profiles for thin and thick discs with varying spin (and inclination angle)
+"""
+This script plots non-turbulent (laminar) line profiles for thin and thick accretion discs with varying spin.
+It explores:
+- The impact of black hole spin on emission line profiles.
+- Differences between thin (Shakura-Sunyaev) and thick (exponential height profile) accretion discs.
+- The effect of inclination angle on the observed line shapes.
+- A range of spin values from non-rotating (a=0) to maximally spinning (a=0.998).
+The script generates line profile plots for thin and thick discs at different inclinations and saves them as PDFs.
+"""
 
 using Plots, Gradus, Measures, LaTeXStrings
 include("updated-velocity-functions.jl")

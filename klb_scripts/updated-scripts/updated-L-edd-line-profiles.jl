@@ -1,3 +1,11 @@
+"""
+This script plots line profiles for accretion discs with varying Eddington ratios.
+It explores:
+- The impact of different Eddington ratios on emission line profiles.
+- Comparisons between thin (Shakura-Sunyaev) and thick (exponential height profile) accretion discs.
+- The effect of inclination angle on the observed line shapes.
+- A range of Eddington ratios from 0.1 to 1.0.
+"""
 using Plots, Gradus, Measures, LaTeXStrings
 include("updated-velocity-functions.jl")
 include("updated-sound-speed.jl")

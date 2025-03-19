@@ -1,3 +1,10 @@
+"""
+This script plots the height profile of a thick accretion disc as a function of radius.
+It computes:
+- An exponential height profile for different scale heights.
+- The variation of disc height from the ISCO to an outer radius of 400M.
+- The effect of different scale height values on the structure of the disc.
+"""
 using Plots, Gradus, LaTeXStrings
 
 plot_font = "Computer Modern"

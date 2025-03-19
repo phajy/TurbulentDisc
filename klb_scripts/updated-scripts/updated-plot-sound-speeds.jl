@@ -1,7 +1,11 @@
-# This script plots the sound speed function, and radial inflow velocity function defined by Pariev & Bromley 1998.
-# The sound speed is plotted as a dashed line, and the radial inflow velocity is plotted as a solid line.
-# Combinations of Eddington ratios and alpha values are looped over those in Pariev & Bromley's Figure 1.
-
+"""
+This script plots the sound speed function and radial inflow velocity function as defined by Pariev & Bromley (1998).
+It explores:
+- The variation of sound speed (dashed line) and radial inflow velocity (solid line) as a function of radius.
+- The effects of different black hole spin values on these velocity functions.
+- The influence of varying Eddington ratios and alpha viscosity parameters.
+- A comparison with the parameter combinations used in Pariev & Bromley's Figure 1.
+"""
 include("updated-sound-speed.jl")
 
 using Plots, LaTeXStrings

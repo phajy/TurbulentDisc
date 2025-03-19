@@ -1,3 +1,11 @@
+"""
+This script generates turbulent redshift maps for thin and thick accretion discs at different inclination angles.
+It computes:
+- The relativistic redshift distribution for an accretion disc around a Kerr black hole.
+- Turbulent velocity fields using either Perlin noise or fractional Brownian motion (fBm).
+- The effects of turbulence on redshift variations across the observed image plane.
+- Inclination-dependent redshift maps for both thin (Shakura-Sunyaev) and thick (exponential height profile) discs.
+"""
 using Gradus, Plots, Measures, LaTeXStrings
 
 include("updated-velocity-functions.jl") 

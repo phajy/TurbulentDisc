@@ -1,9 +1,16 @@
-# Script to plot both the line profiles for accretion discswith varying parameters different disc types 
-# (thin, thick, Shakura-Sunyaev) for no-turbulence, or turbulence (Perlin/fBm), spin, Eddington ratio and
-# varying turbulence parameters (Mach number, correlation length)
-
-
 """
+This script plots line profiles for accretion discs with varying parameters, including different disc types
+(thin, thick, Shakura-Sunyaev), turbulence models (Perlin/fBm), black hole spin, Eddington ratio,
+and turbulence parameters (Mach number, correlation length).
+
+It computes:
+- The zero-turbulence (laminar) line profile.
+- The turbulent line profile incorporating relativistic velocity fluctuations.
+- The effects of Mach number and correlation length on emission line broadening.
+
+The script generates and saves line profile plots comparing turbulent and non-turbulent cases and was used as a 
+blueprint to generate the other line profile plotting routines.
+
 Parameters:
 
 - `a`: Kerr black hole spin parameter

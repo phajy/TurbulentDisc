@@ -1,3 +1,10 @@
+"""
+This script generates a 3D visualisation of geodesic paths in a Kerr spacetime for a lamppost model.
+It computes:
+- Geodesic trajectories from a point source located at height `h` above the black hole.
+- The effect of frame-dragging and light bending around a rapidly spinning Kerr black hole.
+- A 3D plot of geodesic paths and the event horizon.
+"""
 using Plots, Gradus
 
 plot_font = "Computer Modern"

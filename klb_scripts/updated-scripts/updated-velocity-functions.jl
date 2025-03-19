@@ -1,4 +1,10 @@
-# This script contains the velocity functions for the turbulence models (Perlin/fBm)
+"""
+This script defines velocity functions for turbulent accretion disc models using Perlin and fractional Brownian motion (fBm) noise.
+ It computes the effective velocity of fluid elements in a relativistic accretion disc, incorporating:
+ - A Keplerian velocity component from the Gradus CircularOrbits module.
+ - A turbulent velocity perturbation based on either Perlin noise or fBm noise.
+ - A radial inflow component derived from an external radial velocity function.
+"""
 
 using Gradus, Plots, CoherentNoise
 include("updated-sound-speed.jl")
