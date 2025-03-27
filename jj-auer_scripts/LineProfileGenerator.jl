@@ -2,7 +2,7 @@
 # and inclination angles (emissivities and inclinations angle ranges as of Pariev & Bromley 1998)
 
 # Import libraries
-using Plots, Gradus, Measures, LaTeXStrings
+using Plots, Gradus, Measures, LaTeXStrings, DSP
 include("TurbulenceMaps.jl")
 include("SoundandRadialSpeed.jl")
 
@@ -156,12 +156,15 @@ begin
     # Defaults Parameters:
     begin
         Metric: Kerr
-        Disc Type: Shakura-Sunyaev, Eddington Ratio: 0.3
+        Disc Type: Shakura-Sunyaev
         Radii Limits: ISCO, 100M
         Bin Limits: 0.1, 1.5
         Svector: (0.0, 1000.0, deg2rad(75), 0.0)
         M=1
-        Luminosity: 1.9e44 - check if this is 2-10 kev luniosity or bolometric, including all of it 
+        Ratio=0.1
+        Alpha=0.1
+        Mach=1
+        Correlation Length=1
         Turbulence: Off
         Emissivity: Lamp Post, height = 10M, it's what other people use
         a=0.998
@@ -179,149 +182,25 @@ begin
         bottom_margin = [5mm 0mm]
     )
 
-    bins = collect(range(0.1, 2.5, 200))
+    bins = collect(range(0.1, 4.0, 200))
 
     a=0.998
     M = 1.0
     ratio = 1.0
     alpha = 0.1
+    mach = 3
+    correlation_length=1
+    h = 10.0
     m = KerrMetric(M, a)
     inner_radius = Gradus.isco(m)
     outer_radius = 100.0
-    d = ThinDisc(inner_radius, outer_radius)
+    d = ShakuraSunyaev(m, eddington_ratio=ratio)
     x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
-    mach = 3
-    correlation_length=1
-    model = LampPostModel(h=10.0)
+    model = LampPostModel(h=h)
     profile = emissivity_profile(m, d, model)
     f = calculate_line_profile(m, x, d, a, M, ratio, alpha, bins, profile, correlation_length, mach)
     plot!(plt, bins, f, label=L"Mach 1")
 
     display(plt)
 end
-"""
-
-plt = plot(
-    xlabel = L"ν/ν_e \ / \ \textrm{Unitless}",
-    ylabel = L"\textrm{Flux \ / \ Arbitrary Units}",
-    legend = :topleft,
-    left_margin = [5mm 0mm],
-    right_margin = [5mm 0mm],
-    top_margin = [5mm 0mm],
-    bottom_margin = [5mm 0mm],
-    palette = pal
-)
-
-
-bins = collect(range(0.1, 4.0, 200))
-
-fluxes = [
-
-    [[[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []]], # Spin
-    [[[], [], [], [], [], [], []], [[], [], [], [], [], [], []], [[], [], [], [], [], [], []], [[], [], [], [], [], [], []], [[], [], [], [], [], [], []], [[], [], [], [], [], [], []], [[], [], [], [], [], [], []]], # Height
-    [[[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []], [[], [], [], [], []]] # Correlation Length
-
-]
-
-for i in 1:3
-
-    for (j, mach) in enumerate([0, 0.1, 1, 5, 10, 20, 30])
-
-        if i == 1
-
-            for (k, a) in enumerate([0.1, 0.5, 0.9, 0.99, 0.998])
-
-                M = 1.0
-                ratio = 0.1
-                alpha = 0.1
-                h = 10.0
-                m = KerrMetric(M, a)
-                inner_radius = Gradus.isco(m)
-                outer_radius = 100.0
-                d = ShakuraSunyaev(m, eddington_ratio=ratio)
-                x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
-                correlation_length=1
-                model = LampPostModel(h=h)
-                profile = emissivity_profile(m, d, model)
-                fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, ratio, alpha, bins, profile, correlation_length, mach)
-
-            end
-        
-        elseif i == 2
-
-            for (k, h) in enumerate([2.0, 4.0, 6.0, 8.0, 10.0, 12.0, 14.0])
-
-                a=0.998
-                M = 1.0
-                ratio = 0.1
-                alpha = 0.1
-                m = KerrMetric(M, a)
-                inner_radius = Gradus.isco(m)
-                outer_radius = 100.0
-                d = ShakuraSunyaev(m, eddington_ratio=ratio)
-                x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
-                correlation_length=1
-                model = LampPostModel(h=h)
-                profile = emissivity_profile(m, d, model)
-                fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, ratio, alpha, bins, profile, correlation_length, mach)
-
-            end
-        
-        elseif i == 3
-
-            for (k, l) in enumerate([0.1, 1, 5, 10, 50])
-
-                a=0.998
-                M = 1.0
-                ratio = 0.1
-                alpha = 0.1
-                h = 10.0
-                m = KerrMetric(M, a)
-                inner_radius = Gradus.isco(m)
-                outer_radius = 100.0
-                d = ShakuraSunyaev(m, eddington_ratio=ratio)
-                x = SVector(0.0, 1000.0, deg2rad(incl_angle), 0.0)
-                model = LampPostModel(h=h)
-                profile = emissivity_profile(m, d, model)
-                fluxes[i][j][k] = calculate_line_profile(m, x, d, a, M, ratio, alpha, bins, profile, correlation_length, mach)
-
-            end
-        
-        end
-
-    end
-
-end
-
-"""
-# Displaying the results
-begin
-
-    pal = :seaborn_colorblind
-    plt = plot(
-        xlabel = L"ν/ν_e \ / \ \textrm{Unitless}",
-        ylabel = L"\textrm{Flux \ / \ Arbitrary Units}",
-        legend = :topleft,
-        left_margin = [5mm 0mm],
-        right_margin = [5mm 0mm],
-        top_margin = [5mm 0mm],
-        bottom_margin = [5mm 0mm],
-        palette = pal
-        )
-
-    annotate!((1.42, 0.020, (L"\textbf{Laminar}", 10, :black, :center)))
-    annotate!((1.42, 0.0185, (L"\mathbf{40 \degree}", 10, :black, :center)))
-    
-    plot!(plt, bins, luxes[1], label=L"a = 0.1")
-    plot!(plt, bins, luxes[2], label=L"a = 0.5")
-    plot!(plt, bins, luxes[3], label=L"a = 0.9")
-    plot!(plt, bins, luxes[4], label=L"a = 0.99")
-    plot!(plt, bins, luxes[5], label=L"a = 0.998")
-
-    display(plt)
-end
-
-# Saving current plot
-#savefig(plt, "Other/Figs/LeverTweakingPlanned/40/Height/height_1000_40.pdf")
-
 """

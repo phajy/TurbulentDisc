@@ -2,27 +2,30 @@
 using Gradus, Plots
 include("TurbulenceMaps.jl")
 
-bins=200
-
-a = 0.80
+# Define all parameters
+bins=1000
+a = 0.998
 M = 1.0
-lum = 7.2e42
-correlation_length = 5
-mach = 20000
-outer_radius = 40.0
+alpha = 0.1
+ratio = 0.1
+correlation_length = 10.0
+mach = 5
+outer_radius = 60.0
 m = KerrMetric(M, a)
 d = Gradus.ThinDisc(Gradus.isco(m), outer_radius)
-incl_angle = 80
+incl_angle = 90
 x = SVector(0.0, 1_000.0, deg2rad(incl_angle), 0.0)
 
 radii = logrange(Gradus.isco(m), outer_radius, bins)
 θ = collect(range(0, 2π, bins))
 
-function velocity_wrapper(m, r, phis, a, M, lum, correlation_length, mach)
-    return turbulence_fbm(m, r, phis, a, M, lum, correlation_length, mach)
+# Define the velocity wrapper function
+function velocity_wrapper(m, r, phis, a, M, ratio, alpha, correlation_length, mach)
+    return turbulence_fbm(m, r, phis, a, M, ratio, alpha, correlation_length, mach)
 end
 
-function turbulent_redshift(metric, x_obs, vel_func, a, M, lum, correlation_length, mach)
+# Define the turbulent redshift function
+function turbulent_redshift(metric, x_obs, vel_func, a, M, ratio, alpha, correlation_length, mach)
     # metric matrix at the observer's position
     g_obs = Gradus.metric(metric, x_obs)
     # fixed stationary observer velocity
@@ -30,7 +33,7 @@ function turbulent_redshift(metric, x_obs, vel_func, a, M, lum, correlation_leng
 
     # internal closure
     function _internal_turbulent_redshift(m::AbstractMetric, gp, t)
-        v_disc = vel_func(m, gp.x[2], gp.x[4], a, M, lum, correlation_length, mach)
+        v_disc = vel_func(m, gp.x[2], gp.x[4], a, M, ratio, alpha, correlation_length, mach)
 
         g = Gradus.metric(m, gp.x)
         Gradus.RedshiftFunctions._redshift_dotproduct(g, v_disc, g_obs, v_obs, gp)
@@ -47,7 +50,7 @@ begin
 
     # Calculate turbulent velocities for each combination of r and θ
     turbulent_velocities = [
-        [velocity_wrapper(m, radii[i], θ[j], a, M, lum, correlation_length, mach) for j in 1:length(θ)]
+        [velocity_wrapper(m, radii[i], θ[j], a, M, ratio, alpha, correlation_length, mach) for j in 1:length(θ)]
         for i in 1:length(radii)
     ]
 
@@ -106,8 +109,8 @@ end
 begin
 
     plt = plot(
-    xlabel = "r (M))",
-    ylabel = "Δv (unitless)",
+    xlabel = L"r \ / \ M",
+    ylabel = L"Δv \ / \ c",
     legend = :topright,
     )
 
@@ -116,7 +119,7 @@ begin
     plot!(
         radii,
         radial_differences,
-        label = "Radial Turbulence Added",
+        label = L"\textrm{Radial \ Turbulence \ Added}",
     )
 
     poloidal_differences = [(turbulent_velocities_slice[i][3] - keplerian_velocities[i][3]) for i in 1:bins]
@@ -124,7 +127,7 @@ begin
     plot!(
         radii,
         poloidal_differences,
-        label = "Poloidal Turbulence Added",
+        label = L"\textrm{Poloidal \ Turbulence \ Added}",
     )
 
     azimuthal_differences = [(turbulent_velocities_slice[i][4] - keplerian_velocities[i][4]) for i in 1:bins]
@@ -132,25 +135,22 @@ begin
     plot!(
         radii,
         azimuthal_differences,
-        label = "Azimuthal Turbulence Added",
+        label = L"\textrm{Azimuthal \ Turbulence \ Added}",
     )
 
     display(plt)
 
 end
 
-
 # Turbulence polar heatmap
 
 begin
     plt = heatmap(
         θ,
-        #log10.(radii),
         radii,
         difference_field,
         projection = :polar,
-        title = "Magnitude of Velocity Difference", 
-        colorbar_title = "Change in velocity compared to Keplerian (%)",
+        colorbar_title = "Change in velocity vs Keplerian (%)",
         labelpad = 5,
         grid = true,
         yticks = false,
@@ -163,10 +163,8 @@ end
 
 
 # Redshift heatmap
-
 begin
-    redshift_pf = turbulent_redshift(m, x, velocity_wrapper, a, M, lum, correlation_length, mach)
-    print(redshift_pf)
+    redshift_pf = turbulent_redshift(m, x, velocity_wrapper, a, M, ratio, alpha, correlation_length, mach)
 
     pf = redshift_pf ∘ ConstPointFunctions.filter_intersected()
 
@@ -176,18 +174,16 @@ begin
         d,
         # maximum integration time
         2000.0,
-        αlims = (-50, 50), 
-        βlims = (-18, 20),
+        αlims = (-65, 65), 
+        βlims = (-18, 30),
         image_width = 800,
         image_height = 400,
         verbose = true,
         pf = pf,
     )
 
-    heatmap(α, β, img, aspect_ratio = 1, color=:inferno)
+    plt = heatmap(α, β, img, aspect_ratio = 1, color=:inferno, cbar=false)
 end
-
-
 
 #savefig(plt, "Other/Figs/FillInHere.pdf")
 
